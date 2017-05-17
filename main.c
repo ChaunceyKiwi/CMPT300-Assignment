@@ -27,72 +27,70 @@ LIST *ListCreate() {
   return listPtr;
 }
 
-int ListCount(LIST list) {
-  return list.listCount;
+int ListCount(LIST* list) {
+  return list->listCount;
 }
 
-void *ListFirst(LIST list) {
-  list.curr = list.head;
-  return list.curr->val;
+void *ListFirst(LIST* list) {
+  list->curr = list->head;
+  return list->curr->val;
 }
 
-void *ListLast(LIST list) {
-  list.curr = list.head + list.listCount - 1;
-  return list.curr->val;
+void *ListLast(LIST* list) {
+  list->curr = list->head + list->listCount - 1;
+  return list->curr->val;
 }
 
-void *ListNext(LIST list) {
+void *ListNext(LIST* list) {
   // Advance list's current item by one
-  list.curr++;
+  list->curr++;
 
   // If not beyond the end of the list, return the item, otherwise NULL
-  if (list.curr <= (list.head + list.listCount - 1)) {
-    return list.curr->val;
+  if (list->curr <= (list->head + list->listCount - 1)) {
+    return list->curr->val;
   } else {
     return NULL;
   }
 }
 
-void *ListPrev(LIST list) {
+void *ListPrev(LIST* list) {
   // Back up list's current item by one
-  list.curr--;
+  list->curr--;
 
   // If not beyond the start of the list, return the item, otherwise NULL
-  if (list.curr >= list.head) {
-    return list.curr->val;
+  if (list->curr >= list->head) {
+    return list->curr->val;
   } else {
     return NULL;
   }
 }
 
-void *ListCurr(LIST list) {
+void *ListCurr(LIST* list) {
   // If the current pointer is before or beyond the list, return NULL
-  if ((list.curr <= (list.head + list.listCount - 1)) ||
-    (list.curr >= list.head)) {
-      return list.curr->val;
-    } else {
-      return NULL;
-    }
+  if ((list->curr <= (list->head + list->listCount - 1)) ||
+      (list->curr >= list->head)) {
+    return list->curr->val;
+  } else {
+    return NULL;
+  }
 }
 
 // TO-DO
-int ListAdd(LIST list, void* item) {
+int ListAdd(LIST* list, void* item) {
   return 0;
 }
 
 // TO-DO
-int ListInsert(LIST list, void* item) {
+int ListInsert(LIST* list, void* item) {
   return 0;
 }
 
 // TO-DO
-int ListAppend(LIST list, void* item) {
-  if (list.listCount == 0) {
-    list.listNodes[0].val = item;
-    list.listNodes[0].next = NULL;
-    printf("%d\n", list.listCount);
-    list.listCount++;
-    printf("%d\n", list.listCount);
+int ListAppend(LIST* list, void* item) {
+  if (list->listCount == 0) {
+    list->listNodes[0].val = item;
+    list->listNodes[0].next = NULL;
+    list->listCount++;
     return 0;
   }
 
@@ -100,11 +98,11 @@ int ListAppend(LIST list, void* item) {
 }
 
 // TO-DO
-int ListPrepend(LIST list, void* item) {
-  if (list.listCount == 0) {
-    list.listNodes[0].val = item;
-    list.listNodes[0].next = NULL;
-    list.listCount++;
+int ListPrepend(LIST* list, void* item) {
+  if (list->listCount == 0) {
+    list->listNodes[0].val = item;
+    list->listNodes[0].next = NULL;
+    list->listCount++;
     return 0;
   }
 
@@ -114,9 +112,9 @@ int ListPrepend(LIST list, void* item) {
 int main(void)
 {
   LIST *temp = ListCreate();
-  int a = 3;
-  ListAppend(*temp, &a);
+  int a = 5;
+  ListPrepend(temp, &a);
 
-  printf("%d\n", ListCount(*temp));
+  printf("%d\n", ListCount(temp));
   return 0;
 }
