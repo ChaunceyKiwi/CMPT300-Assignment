@@ -22,7 +22,6 @@ int headsCount = 0;
 LIST *ListCreate() {
   LIST *listPtr = &headsArray[headsCount++];
   listPtr->listCount = 0;
-  listPtr->head = &listPtr->listNodes[0];
   listPtr->curr = NULL;
   return listPtr;
 }
@@ -87,10 +86,19 @@ int ListInsert(LIST* list, void* item) {
 
 // TO-DO
 int ListAppend(LIST* list, void* item) {
+
   if (list->listCount == 0) {
     list->listNodes[0].val = item;
     list->listNodes[0].next = NULL;
+    list->curr = &list->listNodes[0];
+    list->head = list->curr;
     list->listCount++;
+    return 0;
+  } else {
+    list->listNodes[list->listCount].val = item;
+    list->listNodes[list->listCount].next = NULL;
+    list->listCount++;
+    ListLast(list);
     return 0;
   }
 
@@ -99,10 +107,19 @@ int ListAppend(LIST* list, void* item) {
 
 // TO-DO
 int ListPrepend(LIST* list, void* item) {
+
   if (list->listCount == 0) {
     list->listNodes[0].val = item;
     list->listNodes[0].next = NULL;
+    list->curr = &list->listNodes[0];
+    list->head = list->curr;
     list->listCount++;
+    return 0;
+  } else {
+    list->listNodes[list->listCount].val = item;
+    list->listNodes[list->listCount].next = NULL;
+    list->listCount++;
+    ListLast(list);
     return 0;
   }
 
@@ -113,8 +130,16 @@ int main(void)
 {
   LIST *temp = ListCreate();
   int a = 5;
-  ListPrepend(temp, &a);
+  ListAppend(temp, &a);
+  int b = 6;
+  ListAppend(temp, &b);
+  int c = 7;
+  ListAppend(temp, &c);
+
 
   printf("%d\n", *(int*)ListFirst(temp));
+  printf("%d\n", *(int*)ListNext(temp));
+  printf("%d\n", *(int*)ListNext(temp));
+
   return 0;
 }
