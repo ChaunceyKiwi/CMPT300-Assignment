@@ -65,6 +65,16 @@ void *ListPrev(LIST list) {
   }
 }
 
+void *ListCurr(LIST list) {
+  // If the current pointer is before or beyond the list, return NULL
+  if ((list.curr <= (list.head + list.listCount - 1)) ||
+    (list.curr >= list.head)) {
+      return list.curr->val;
+    } else {
+      return NULL;
+    }
+}
+
 int main(void)
 {
   LIST *temp = ListCreate();
