@@ -22,7 +22,7 @@ int headsCount = 0;
 LIST *ListCreate() {
   LIST *listPtr = &headsArray[headsCount++];
   listPtr->listCount = 0;
-  listPtr->head = (struct ListNode*)(listPtr + sizeof(int) + 2 * sizeof(struct ListNode *));
+  listPtr->head = &listPtr->listNodes[0];
   listPtr->curr = NULL;
   return listPtr;
 }
@@ -115,6 +115,6 @@ int main(void)
   int a = 5;
   ListPrepend(temp, &a);
 
-  printf("%d\n", ListCount(temp));
+  printf("%d\n", *(int*)ListFirst(temp));
   return 0;
 }
