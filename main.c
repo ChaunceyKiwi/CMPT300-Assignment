@@ -4,7 +4,7 @@
 #define listSize 50
 
 struct ListNode {
-  void *value;
+  void *val;
   struct ListNode *next;
 };
 
@@ -33,19 +33,25 @@ int ListCount(LIST list) {
 
 void *ListFirst(LIST list) {
   list.curr = list.head;
-  return list.curr->value;
+  return list.curr->val;
 }
 
 void *ListLast(LIST list) {
-  list.curr = list.head + list.listCount;
-  return list.curr->value;
+  list.curr = list.head + list.listCount - 1;
+  return list.curr->val;
 }
 
-// void *ListNext(LIST list) {
-//   struct ListNode* temp = list.curr;
-//
-// }
+void *ListNext(LIST list) {
+  // Advance list's current item by one
+  list.curr++;
 
+  // If not beyond the end of the list, return the item, otherwise NULL
+  if (list.curr <= (list.head + list.listCount - 1)) {
+    return list.curr->val;
+  } else {
+    return NULL;
+  }
+}
 
 int main(void)
 {
