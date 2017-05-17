@@ -53,6 +53,18 @@ void *ListNext(LIST list) {
   }
 }
 
+void *ListPrev(LIST list) {
+  // Back up list's current item by one
+  list.curr--;
+
+  // If not beyond the start of the list, return the item, otherwise NULL
+  if (list.curr >= list.head) {
+    return list.curr->val;
+  } else {
+    return NULL;
+  }
+}
+
 int main(void)
 {
   LIST *temp = ListCreate();
