@@ -75,9 +75,48 @@ void *ListCurr(LIST list) {
     }
 }
 
+// TO-DO
+int ListAdd(LIST list, void* item) {
+  return 0;
+}
+
+// TO-DO
+int ListInsert(LIST list, void* item) {
+  return 0;
+}
+
+// TO-DO
+int ListAppend(LIST list, void* item) {
+  if (list.listCount == 0) {
+    list.listNodes[0].val = item;
+    list.listNodes[0].next = NULL;
+    printf("%d\n", list.listCount);
+    list.listCount++;
+    printf("%d\n", list.listCount);
+    return 0;
+  }
+
+  return -1;
+}
+
+// TO-DO
+int ListPrepend(LIST list, void* item) {
+  if (list.listCount == 0) {
+    list.listNodes[0].val = item;
+    list.listNodes[0].next = NULL;
+    list.listCount++;
+    return 0;
+  }
+
+  return -1;
+}
+
 int main(void)
 {
   LIST *temp = ListCreate();
+  int a = 3;
+  ListAppend(*temp, &a);
+
   printf("%d\n", ListCount(*temp));
   return 0;
 }
