@@ -1,22 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
-#define headsSize 20
-#define listSize 50
+#define headsMaxSize 20
+#define listMaxSize 50
 
 struct ListNode {
   void *val;
-  struct ListNode *next;
 };
 
 typedef struct List {
   int listCount;
   struct ListNode *head;
   struct ListNode *curr;
-  struct ListNode listNodes[listSize];
+  struct ListNode listNodes[listMaxSize];
 } LIST;
 
 // Statically allocate memory for headsArray
-LIST headsArray[headsSize];
+LIST headsArray[headsMaxSize];
 int headsCount = 0;
 
 LIST *ListCreate() {
@@ -76,27 +75,71 @@ void *ListCurr(LIST* list) {
 
 // TO-DO
 int ListAdd(LIST* list, void* item) {
-  return 0;
+  // Check if current pointer is NULL
+  if (list->curr == NULL) {
+    return -1;
+  }
+
+  // Check if nodes are exhausted
+  else if (list->listCount >= listMaxSize) {
+    return -1;
+  }
+
+  else {
+    for (struct ListNode *iter = &list->listNodes[list->listCount];
+         iter > list->curr + 1; iter--) {
+      *iter = *(iter - 1);
+    }
+
+    (list->curr + 1)->val = item;
+    list->listCount++;
+    list->curr++;
+    return 0;
+  }
 }
 
 // TO-DO
 int ListInsert(LIST* list, void* item) {
-  return 0;
+  // Check if current pointer is NULL
+  if (list->curr == NULL) {
+    return -1;
+  }
+
+  // Check if nodes are exhausted
+  else if (list->listCount >= listMaxSize) {
+    return -1;
+  }
+
+  else {
+    for (struct ListNode *iter = &list->listNodes[list->listCount];
+         iter > list->curr; iter--) {
+      *iter = *(iter - 1);
+    }
+
+    list->curr->val = item;
+    list->listCount++;
+    return 0;
+  }
 }
 
-// TO-DO
 int ListAppend(LIST* list, void* item) {
+  // Check if nodes are exhausted
+  if (list->listCount >= listMaxSize) {
+    return -1;
+  }
 
+  // If the list is empty
   if (list->listCount == 0) {
     list->listNodes[0].val = item;
-    list->listNodes[0].next = NULL;
     list->curr = &list->listNodes[0];
     list->head = list->curr;
     list->listCount++;
     return 0;
-  } else {
+  }
+
+  // If the list is not empty
+  else {
     list->listNodes[list->listCount].val = item;
-    list->listNodes[list->listCount].next = NULL;
     list->listCount++;
     ListLast(list);
     return 0;
@@ -105,21 +148,31 @@ int ListAppend(LIST* list, void* item) {
   return -1;
 }
 
-// TO-DO
 int ListPrepend(LIST* list, void* item) {
+  // Check if nodes are exhausted
+  if (list->listCount >= listMaxSize) {
+    return -1;
+  }
 
+  // If the list is empty
   if (list->listCount == 0) {
     list->listNodes[0].val = item;
-    list->listNodes[0].next = NULL;
     list->curr = &list->listNodes[0];
     list->head = list->curr;
     list->listCount++;
     return 0;
-  } else {
-    list->listNodes[list->listCount].val = item;
-    list->listNodes[list->listCount].next = NULL;
+  }
+
+  // If the list is not empty
+  else {
+    for (struct ListNode *iter = &list->listNodes[list->listCount];
+         iter >= &list->listNodes[1]; iter--) {
+      *iter = *(iter - 1);
+    }
+
+    list->listNodes[0].val = item;
     list->listCount++;
-    ListLast(list);
+    ListFirst(list);
     return 0;
   }
 
@@ -130,14 +183,16 @@ int main(void)
 {
   LIST *temp = ListCreate();
   int a = 5;
-  ListAppend(temp, &a);
+  ListPrepend(temp, &a);
   int b = 6;
-  ListAppend(temp, &b);
+  ListPrepend(temp, &b);
   int c = 7;
-  ListAppend(temp, &c);
-
+  ListPrepend(temp, &c);
+  int d = 8;
+  ListInsert(temp, &d);
 
   printf("%d\n", *(int*)ListFirst(temp));
+  printf("%d\n", *(int*)ListNext(temp));
   printf("%d\n", *(int*)ListNext(temp));
   printf("%d\n", *(int*)ListNext(temp));
 
