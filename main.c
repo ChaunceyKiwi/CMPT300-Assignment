@@ -1,6 +1,55 @@
 #include <stdio.h>
+#include <stdlib.h>
+#define headsSize 20
+#define listSize 50
+
+struct ListNode {
+  void *value;
+  struct ListNode *next;
+};
+
+typedef struct List {
+  int listCount;
+  struct ListNode *head;
+  struct ListNode *curr;
+  struct ListNode listNodes[listSize];
+} LIST;
+
+// Statically allocate memory for headsArray
+LIST headsArray[headsSize];
+int headsCount = 0;
+
+LIST *ListCreate() {
+  LIST *listPtr = &headsArray[headsCount++];
+  listPtr->listCount = 0;
+  listPtr->head = (struct ListNode*)(listPtr + sizeof(int) + 2 * sizeof(struct ListNode *));
+  listPtr->curr = NULL;
+  return listPtr;
+}
+
+int ListCount(LIST list) {
+  return list.listCount;
+}
+
+void *ListFirst(LIST list) {
+  list.curr = list.head;
+  return list.curr->value;
+}
+
+void *ListLast(LIST list) {
+  list.curr = list.head + list.listCount;
+  return list.curr->value;
+}
+
+// void *ListNext(LIST list) {
+//   struct ListNode* temp = list.curr;
+//
+// }
+
 
 int main(void)
 {
-  printf("Hello World!\n");
+  LIST *temp = ListCreate();
+  printf("%d\n", ListCount(*temp));
+  return 0;
 }
