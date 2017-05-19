@@ -17,7 +17,9 @@ void updateListNode(ListNode* listNode, void* item, ListNode* prev, ListNode* ne
 void updateList(LIST* list, int len, int currFlag,ListNode* head, ListNode* tail, ListNode* curr);
 LIST* allocateList();
 ListNode* allocateNode();
+void FreeList(LIST* list);
 void FreeNode(ListNode* listNode);
+void ListConcat(LIST* list1, LIST* list2);
 
 //////////////////////////////////////////////
 // Routine functions implementation
@@ -269,6 +271,15 @@ void *ListRemove(LIST* list) {
   }
 }
 
+void ListConcat(LIST* list1, LIST* list2) {
+  // Do concatenation only when both of the lists are not NULL
+  if (list1 != NULL && list2 != NULL) {
+    list1->tail->next = list2->head;
+    list2->head->prev = list1->tail;
+    FreeList(list2);
+  }
+}
+
 //////////////////////////////////////////////
 // Helper functions implementation
 
@@ -314,6 +325,16 @@ ListNode* allocateNode() {
   }
 }
 
+void FreeList(LIST* list) {
+  list->next = NULL;
+  
+  if (freeHeadList == NULL) {
+    freeHeadList = list;
+  } else {
+    freeHeadList->next = list;
+  }
+}
+
 void FreeNode(ListNode* listNode) {
   listNode->prev = NULL;
   listNode->val = NULL;
@@ -322,6 +343,18 @@ void FreeNode(ListNode* listNode) {
   if (freeNodeList == NULL) {
     freeNodeList = listNode;
   } else {
-    freeNodeList->next = freeNodeList;
+    freeNodeList->next = listNode;
   }
+}
+
+//////////////////////////////////////////////
+// Testing functions implementation
+
+void ListPrint(LIST *list1) {
+  ListNode* iter = list1->head;
+  while(iter != NULL) {
+    printf("%d ", *(int*)iter->val);
+    iter = iter->next;
+  }
+  printf("\n");
 }

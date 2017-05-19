@@ -21,6 +21,8 @@ typedef struct List {
   struct List *next; // used for freeHeadList
 } LIST;
 
+//////////////////////////////////////////////
+// Routine functions declaration
 
 // Makes a new, empty list, and returns its reference
 // on success. Returns a NULL pointer on failure.
@@ -83,5 +85,10 @@ void *ListRemove(LIST* list);
 // Adds list2 to the end of list1. The current pointer is set to the
 // current pointer of list1. List2 no longer exists after the operation.
 void ListConcat(LIST* list1, LIST* list2);
+
+//////////////////////////////////////////////
+// Testing functions declaration
+
+void ListPrint(LIST *list1);
 
 #endif /* list_h */
