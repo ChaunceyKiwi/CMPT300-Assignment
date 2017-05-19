@@ -8,8 +8,8 @@
 
 typedef struct ListNode_ {
   void *val;
-  struct ListNode_ *next;
   struct ListNode_ *prev;
+  struct ListNode_ *next;
 } ListNode;
 
 typedef struct List {
@@ -18,6 +18,7 @@ typedef struct List {
   ListNode *head;
   ListNode *tail;
   ListNode *curr;
+  struct List *next; // used for freeHeadList
 } LIST;
 
 
@@ -60,7 +61,7 @@ void *ListCurr(LIST* list);
 // Returns 0 on success, -1 on failure.
 int ListAdd(LIST* list, void* item);
 
-//  Adds item to list directly before the current item,
+// Adds item to list directly before the current item,
 // and makes the new item the current one. If the current
 // pointer is before the start of the list, the item is
 // added at the start. If the current pointer is beyond
