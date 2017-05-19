@@ -297,6 +297,12 @@ void ListFree(LIST* list, void *itemFree(LIST* list)) {
   FreeList(list);
 }
 
+void *ListTrim(LIST* list) {
+  ListLast(list);
+  return ListRemove(list);
+}
+
+
 //////////////////////////////////////////////
 // Helper functions implementation
 

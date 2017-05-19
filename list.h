@@ -90,6 +90,9 @@ void ListConcat(LIST* list1, LIST* list2);
 // It should be invoked (within ListFree) as: (*itemFree)(itemToBeFreed);
 void ListFree(LIST* list, void *itemFree(LIST* list));
 
+// Return last item and take it out of list. Make the new last item the current one.
+void *ListTrim(LIST* list);
+
 //////////////////////////////////////////////
 // Testing functions declaration
 
