@@ -1,5 +1,8 @@
 #include "list.h"
 
+//////////////////////////////////////////////
+// Global initialization
+
 LIST headsPool[headsPoolSize];
 int freeHeadIndex = 0;
 ListNode nodesPool[nodesPollSize];
@@ -7,13 +10,17 @@ int freeNodeIndex = 0;
 LIST *freeHeadList = NULL;
 ListNode *freeNodeList = NULL;
 
+//////////////////////////////////////////////
+// Helper functions declaration
+
 void updateListNode(ListNode* listNode, void* item, ListNode* prev, ListNode* next);
 void updateList(LIST* list, int len, int currFlag,ListNode* head, ListNode* tail, ListNode* curr);
 LIST* allocateList();
 ListNode* allocateNode();
+void FreeNode(ListNode* listNode);
 
 //////////////////////////////////////////////
-// routine functions
+// Routine functions implementation
 
 LIST *ListCreate() {
   LIST *list= allocateList();
@@ -38,7 +45,6 @@ void *ListLast(LIST* list) {
   return ListCurr(list);
 }
 
-// Advance list's current item by one
 void *ListNext(LIST* list) {
   // If the current pointer points out of the list, return NULL
   // No backtracking
@@ -57,7 +63,6 @@ void *ListNext(LIST* list) {
   return res;
 }
 
-// Back up list's current item by one
 void *ListPrev(LIST* list) {
   // If the current pointer points out of the list, return NULL
   // No backtracking
@@ -66,7 +71,6 @@ void *ListPrev(LIST* list) {
   }
   
   list->curr = list->curr->prev;
-  
   void *res = ListCurr(list);
   
   // set flag when the current pointer goes before the head
@@ -173,7 +177,6 @@ int ListInsert(LIST* list, void* item) {
   }
 }
 
-// add item to the end of list, and make it the current one.
 int ListAppend(LIST* list, void* item) {
   // Try allocating space for new list node
   list->curr = allocateNode();
@@ -203,7 +206,6 @@ int ListAppend(LIST* list, void* item) {
   }
 }
 
-// add item to the front of list, and make it the current one.
 int ListPrepend(LIST* list, void* item) {
   // Try allocating space for new list node
   list->curr = allocateNode();
@@ -233,8 +235,42 @@ int ListPrepend(LIST* list, void* item) {
   }
 }
 
+void *ListRemove(LIST* list) {
+  // If current list pointer points out of the list
+  if (list->curr == NULL) {
+    return NULL;
+  } else {
+    ListNode* temp = list->curr;
+    void* item = temp->val;
+    
+    // Current list pointer points at head
+    if (list->curr == list->head) {
+      temp->next->prev = NULL;
+      list->head = temp->next;
+      list->curr = list->head;
+    }
+    
+    // Current list pointer points at tail
+    else if (list->curr == list->tail) {
+      temp->prev->next = NULL;
+      list->tail = temp->prev;
+      list->curr = list->tail;
+    }
+    
+    // Current list pointer points at middle item
+    else {
+      temp->prev->next = temp->next;
+      temp->next->prev = temp->prev;
+      list->curr = temp->next;
+    }
+    
+    FreeNode(temp);
+    return item;
+  }
+}
+
 //////////////////////////////////////////////
-// helper functions
+// Helper functions implementation
 
 void updateListNode(ListNode* listNode, void* item, ListNode* prev, ListNode* next) {
   listNode->val = item;
@@ -275,5 +311,17 @@ ListNode* allocateNode() {
     ListNode *nodeFree = freeNodeList;
     freeNodeList = freeNodeList->next;
     return nodeFree;
+  }
+}
+
+void FreeNode(ListNode* listNode) {
+  listNode->prev = NULL;
+  listNode->val = NULL;
+  listNode->next = NULL;
+  
+  if (freeNodeList == NULL) {
+    freeNodeList = listNode;
+  } else {
+    freeNodeList->next = freeNodeList;
   }
 }

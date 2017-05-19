@@ -77,4 +77,11 @@ int ListAppend(LIST* list, void* item);
 // current one. Returns 0 on success, -1 on failure.
 int ListPrepend(LIST* list, void* item);
 
+// Return current item and take it out of list. Make the next item the current one.
+void *ListRemove(LIST* list);
+
+// Adds list2 to the end of list1. The current pointer is set to the
+// current pointer of list1. List2 no longer exists after the operation.
+void ListConcat(LIST* list1, LIST* list2);
+
 #endif /* list_h */
