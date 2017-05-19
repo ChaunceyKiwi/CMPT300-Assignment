@@ -18,7 +18,8 @@ ListNode* allocateNode();
 LIST *ListCreate() {
   LIST *list= allocateList();
   if (list != NULL) {
-    updateList(list, 0, 0, NULL, NULL, NULL);
+    // Initialize the current pointer before the header
+    updateList(list, 0, -1, NULL, NULL, NULL);
   }
   return list;
 }
@@ -39,6 +40,12 @@ void *ListLast(LIST* list) {
 
 // Advance list's current item by one
 void *ListNext(LIST* list) {
+  // If the current pointer points out of the list, return NULL
+  // No backtracking
+  if (list->curr == NULL) {
+    return NULL;
+  }
+  
   list->curr = list->curr->next;
   void *res = ListCurr(list);
   
@@ -52,6 +59,12 @@ void *ListNext(LIST* list) {
 
 // Back up list's current item by one
 void *ListPrev(LIST* list) {
+  // If the current pointer points out of the list, return NULL
+  // No backtracking
+  if (list->curr == NULL) {
+    return NULL;
+  }
+  
   list->curr = list->curr->prev;
   
   void *res = ListCurr(list);
