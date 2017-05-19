@@ -4,20 +4,40 @@
 
 int main(void)
 {
-  STACK stack;
-  stack.topIndex = -1;
-  STACK* stackPtr = &stack;
+  LIST *temp = ListCreate();
+  LIST *temp2 = ListCreate();
   
-  push(stackPtr, 1);
-  push(stackPtr, 2);
-  push(stackPtr, 3);
-  push(stackPtr, 4);
-  push(stackPtr, 5);
-  printf("%d ", pop(stackPtr));
-  printf("%d ", pop(stackPtr));
-  printf("%d ", pop(stackPtr));
-  printf("%d ", pop(stackPtr));
-  printf("%d\n", pop(stackPtr));
+
+  int a = 5;
+  ListPrepend(temp, &a);
+  
+  int b = 6;
+  ListPrepend(temp, &b);
+  ListPrepend(temp2, &b);
+
+  
+  int c = 7;
+  ListPrepend(temp, &c);
+  ListPrepend(temp2, &c);
+
+  
+  int d = 8;
+  ListInsert(temp, &d);
+  ListInsert(temp2, &d);
+  
+  int e = 9;
+  ListPrepend(temp2, &e);
+  
+
+  printf("%d ", *(int*)ListLast(temp));
+  printf("%d ", *(int*)ListPrev(temp));
+  printf("%d ", *(int*)ListPrev(temp));
+  printf("%d\n", *(int*)ListPrev(temp));
+  
+  printf("%d ", *(int*)ListLast(temp2));
+  printf("%d ", *(int*)ListPrev(temp2));
+  printf("%d ", *(int*)ListPrev(temp2));
+  printf("%d\n", *(int*)ListPrev(temp2));
   
   return 0;
 }
