@@ -14,6 +14,7 @@ typedef struct ListNode_ {
 
 typedef struct List {
   int len;
+  int currFlag; // -1: before head, 0: in the list, 1: beyond tail
   ListNode *head;
   ListNode *tail;
   ListNode *curr;

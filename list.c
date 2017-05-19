@@ -9,7 +9,7 @@ STACK freeHeadsStack = {.topIndex = -1};
 STACK freeNodesStack = {.topIndex = -1};
 
 void updateListNode(ListNode* listNode, void* item, ListNode* prev, ListNode* next);
-void updateList(LIST* list, int len, ListNode* head, ListNode* tail, ListNode* curr);
+void updateList(LIST* list, int len, int currFlag,ListNode* head, ListNode* tail, ListNode* curr);
 LIST* allocateList();
 ListNode* allocateNode();
 
@@ -19,7 +19,7 @@ ListNode* allocateNode();
 LIST *ListCreate() {
   LIST *list= allocateList();
   if (list != NULL) {
-    updateList(list, 0, NULL, NULL, NULL);
+    updateList(list, 0, 0, NULL, NULL, NULL);
   }
   return list;
 }
@@ -30,40 +30,42 @@ int ListCount(LIST* list) {
 
 void *ListFirst(LIST* list) {
   list->curr = list->head;
-  return list->curr->val;
+  return ListCurr(list);
 }
 
 void *ListLast(LIST* list) {
   list->curr = list->tail;
-  return list->curr->val;
+  return ListCurr(list);
 }
 
+// Advance list's current item by one
 void *ListNext(LIST* list) {
-  // Advance list's current item by one
   list->curr = list->curr->next;
+  void *res = ListCurr(list);
   
-  // If not beyond the end of the list, return the item, otherwise NULL
-  if (list->curr != NULL) {
-    return list->curr->val;
-  } else {
-    return NULL;
+  // set flag when the current pointer goes beyond the tail
+  if (res == NULL) {
+    list->currFlag = 1;
   }
+  
+  return res;
 }
 
+// Back up list's current item by one
 void *ListPrev(LIST* list) {
-  // Back up list's current item by one
   list->curr = list->curr->prev;
   
-  // If not beyond the start of the list, return the item, otherwise NULL
-  if (list->curr != NULL) {
-    return list->curr->val;
-  } else {
-    return NULL;
+  void *res = ListCurr(list);
+  
+  // set flag when the current pointer goes before the head
+  if (res == NULL) {
+    list->currFlag = -1;
   }
+  
+  return res;
 }
 
 void *ListCurr(LIST* list) {
-  // If the current pointer is before or beyond the list, return NULL
   if (list->curr != NULL) {
     return list->curr->val;
   } else {
@@ -71,68 +73,56 @@ void *ListCurr(LIST* list) {
   }
 }
 
-// adds the new item to list directly after the current
-// item, and makes item the current item.
 int ListAdd(LIST* list, void* item) {
-  
-  // Check if current pointer is NULL
-  if (list->curr == NULL) {
+  ListNode* temp = list->curr;
+  list->curr = allocateNode();
+
+  // Fail cases:
+  // 1. Current pointer is NULL
+  // 2. No more free nodes in nodes pool
+  // 3. The maximum list size is reached
+  if (temp == NULL || list->curr == NULL || list->len >= nodesPollSize) {
     return -1;
   }
   
-  // Check if nodes are exhausted
-  else if (list->len >= nodesPollSize) {
-    return -1;
+  updateListNode(list->curr, item, temp, temp->next);
+  
+  // If current pointer is at the tail
+  if (temp->next == NULL) {
+    list->tail = list->curr;
+  } else {
+    temp->next->prev = list->curr;
   }
   
-  else {
-    ListNode* temp = list->curr;
-    list->curr = allocateNode();
-    updateListNode(list->curr, item, temp, temp->next);
-    
-    // If current pointer is at the tail
-    if (temp->next != NULL) {
-      temp->next->prev = list->curr;
-    } else {
-      list->tail = list->curr;
-    }
-    
-    temp->next = list->curr;
-    list->len++;
-    return 0;
-  }
+  temp->next = list->curr;
+  list->len++;
+  return 0;
 }
 
-// adds item to list directly before the current item,
-// and makes the new item the current one.
 int ListInsert(LIST* list, void* item) {
+  ListNode* temp = list->curr;
+  list->curr = allocateNode();
   
-  // Check if current pointer is NULL
-  if (list->curr == NULL) {
+  // Fail cases:
+  // 1. Current pointer is NULL
+  // 2. No more free nodes in nodes pool
+  // 3. The maximum list size is reached
+  if (temp == NULL || list->curr == NULL || list->len >= nodesPollSize) {
     return -1;
   }
   
-  // Check if nodes are exhausted
-  else if (list->len >= nodesPollSize) {
-    return -1;
+  updateListNode(list->curr, item, temp, temp->prev);
+  
+  // If current pointer is at the head
+  if (temp->prev != NULL) {
+    temp->prev->next = list->curr;
+  } else {
+    list->head = list->curr;
   }
   
-  else {
-    ListNode* temp = list->curr;
-    list->curr = allocateNode();
-    updateListNode(list->curr, item, temp, temp->prev);
-    
-    // If current pointer is at the head
-    if (temp->prev != NULL) {
-      temp->prev->next = list->curr;
-    } else {
-      list->head = list->curr;
-    }
-    
-    temp->prev = list->curr;
-    list->len++;
-    return 0;
-  }
+  temp->prev = list->curr;
+  list->len++;
+  return 0;
 }
 
 // adds item to the end of list, and makes the new item the current one.
@@ -147,7 +137,7 @@ int ListAppend(LIST* list, void* item) {
   if (list->len == 0) {
     list->curr = allocateNode();
     updateListNode(list->curr, item, NULL, NULL);
-    updateList(list, list->len + 1, list->curr, list->curr, list->curr);
+    updateList(list, list->len + 1, 0, list->curr, list->curr, list->curr);
     return 0;
   }
   
@@ -179,7 +169,7 @@ int ListPrepend(LIST* list, void* item) {
     list->curr = allocateNode();
     
     updateListNode(list->curr, item, NULL, NULL);
-    updateList(list, list->len + 1, list->curr, list->curr, list->curr);
+    updateList(list, list->len + 1, 0, list->curr, list->curr, list->curr);
     return 0;
   }
   
@@ -207,8 +197,9 @@ void updateListNode(ListNode* listNode, void* item, ListNode* prev, ListNode* ne
   listNode->next = next;
 }
 
-void updateList(LIST* list, int len, ListNode* head, ListNode* tail, ListNode* curr) {
+void updateList(LIST* list, int len, int currFlag, ListNode* head, ListNode* tail, ListNode* curr) {
   list->len = len;
+  list->currFlag = currFlag;
   list->head = head;
   list->tail = tail;
   list->curr = curr;
