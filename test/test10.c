@@ -36,23 +36,19 @@ int main(void)
   ListPrint(list1);
   printf("\n");
   
-  ListTrim(list1);
-  printf("Count: %d\n", ListCount(list1));
+  printf("Remove %d, Count: %d\n", *(int*)ListTrim(list1), ListCount(list1));
   ListPrint(list1);
   printf("\n");
   
-  ListTrim(list1);
-  printf("Count: %d\n", ListCount(list1));
+  printf("Remove %d, Count: %d\n", *(int*)ListTrim(list1), ListCount(list1));
   ListPrint(list1);
   printf("\n");
   
-  ListTrim(list1);
-  printf("Count: %d\n", ListCount(list1));
+  printf("Remove %d, Count: %d\n", *(int*)ListTrim(list1), ListCount(list1));
   ListPrint(list1);
   printf("\n");
   
-  ListTrim(list1);
-  printf("Count: %d\n", ListCount(list1));
+  printf("Remove %d, Count: %d\n", *(int*)ListTrim(list1), ListCount(list1));
   ListPrint(list1);
   printf("\n");
   
