@@ -245,8 +245,16 @@ void *ListRemove(LIST* list) {
     ListNode* temp = list->curr;
     void* item = temp->val;
     
+    // Current list pointer points at the only node in the list
+    if (list->curr == list->head && list->curr == list->tail) {
+      list->head = NULL;
+      list->tail = NULL;
+      list->curr = NULL;
+      list->currFlag = -1;
+    }
+    
     // Current list pointer points at head
-    if (list->curr == list->head) {
+    else if (list->curr == list->head) {
       temp->next->prev = NULL;
       list->head = temp->next;
       list->curr = list->head;
@@ -266,6 +274,7 @@ void *ListRemove(LIST* list) {
       list->curr = temp->next;
     }
     
+    list->len--;
     FreeNode(temp);
     return item;
   }
@@ -278,6 +287,14 @@ void ListConcat(LIST* list1, LIST* list2) {
     list2->head->prev = list1->tail;
     FreeList(list2);
   }
+}
+
+void ListFree(LIST* list, void *itemFree(LIST* list)) {
+  ListFirst(list);
+  while(list->curr != NULL) {
+    (*itemFree)(list);
+  }
+  FreeList(list);
 }
 
 //////////////////////////////////////////////
@@ -331,7 +348,8 @@ void FreeList(LIST* list) {
   if (freeHeadList == NULL) {
     freeHeadList = list;
   } else {
-    freeHeadList->next = list;
+    list->next = freeHeadList;
+    freeHeadList = list;
   }
 }
 
@@ -343,7 +361,8 @@ void FreeNode(ListNode* listNode) {
   if (freeNodeList == NULL) {
     freeNodeList = listNode;
   } else {
-    freeNodeList->next = listNode;
+    listNode->next = freeNodeList;
+    freeNodeList = listNode;
   }
 }
 

@@ -86,6 +86,10 @@ void *ListRemove(LIST* list);
 // current pointer of list1. List2 no longer exists after the operation.
 void ListConcat(LIST* list1, LIST* list2);
 
+// delete list. itemFree is a pointer to a routine that frees an item.
+// It should be invoked (within ListFree) as: (*itemFree)(itemToBeFreed);
+void ListFree(LIST* list, void *itemFree(LIST* list));
+
 //////////////////////////////////////////////
 // Testing functions declaration
 
