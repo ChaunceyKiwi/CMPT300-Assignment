@@ -10,17 +10,17 @@ STACK freeNodesStack = {.topIndex = -1};
 
 void updateListNode(ListNode* listNode, void* item, ListNode* prev, ListNode* next);
 void updateList(LIST* list, int len, ListNode* head, ListNode* tail, ListNode* curr);
-int allocateList();
-int allocateNode();
+LIST* allocateList();
+ListNode* allocateNode();
 
 //////////////////////////////////////////////
 // routine functions
 
 LIST *ListCreate() {
-  LIST *list;
-  
-  list= &headsPool[allocateList()];
-  updateList(list, 0, NULL, NULL, NULL);
+  LIST *list= allocateList();
+  if (list != NULL) {
+    updateList(list, 0, NULL, NULL, NULL);
+  }
   return list;
 }
 
@@ -87,7 +87,7 @@ int ListAdd(LIST* list, void* item) {
   
   else {
     ListNode* temp = list->curr;
-    list->curr = &nodesPool[allocateNode()];
+    list->curr = allocateNode();
     updateListNode(list->curr, item, temp, temp->next);
     
     // If current pointer is at the tail
@@ -119,7 +119,7 @@ int ListInsert(LIST* list, void* item) {
   
   else {
     ListNode* temp = list->curr;
-    list->curr = &nodesPool[allocateNode()];
+    list->curr = allocateNode();
     updateListNode(list->curr, item, temp, temp->prev);
     
     // If current pointer is at the head
@@ -145,7 +145,7 @@ int ListAppend(LIST* list, void* item) {
   
   // If the list is empty
   if (list->len == 0) {
-    list->curr = &nodesPool[allocateNode()];
+    list->curr = allocateNode();
     updateListNode(list->curr, item, NULL, NULL);
     updateList(list, list->len + 1, list->curr, list->curr, list->curr);
     return 0;
@@ -153,7 +153,7 @@ int ListAppend(LIST* list, void* item) {
   
   // If the list is not empty
   else {
-    list->curr = &nodesPool[allocateNode()];
+    list->curr = allocateNode();
     updateListNode(list->curr, item, list->tail, NULL);
     
     list->tail->next = list->curr;
@@ -176,7 +176,7 @@ int ListPrepend(LIST* list, void* item) {
   
   // If the list is empty
   if (list->len == 0) {
-    list->curr = &nodesPool[allocateNode()];
+    list->curr = allocateNode();
     
     updateListNode(list->curr, item, NULL, NULL);
     updateList(list, list->len + 1, list->curr, list->curr, list->curr);
@@ -185,7 +185,7 @@ int ListPrepend(LIST* list, void* item) {
   
   // If the list is not empty
   else {
-    list->curr = &nodesPool[allocateNode()];
+    list->curr = allocateNode();
     updateListNode(list->curr, item, NULL, list->head);
     
     list->head->prev = list->curr;
@@ -214,18 +214,26 @@ void updateList(LIST* list, int len, ListNode* head, ListNode* tail, ListNode* c
   list->curr = curr;
 }
 
-int allocateList() {
+LIST* allocateList() {
   if (isEmpty(&freeHeadsStack)) {
-    return freeHeadIndex++;
+    if (freeHeadIndex < headsPoolSize) {
+      return &headsPool[freeHeadIndex++];
+    } else {
+      return NULL;
+    }
   } else {
-    return pop(&freeHeadsStack);
+    return &headsPool[pop(&freeHeadsStack)];
   }
 }
 
-int allocateNode() {
+ListNode* allocateNode() {
   if (isEmpty(&freeNodesStack)) {
-    return freeNodeIndex++;
+    if (freeNodeIndex < nodesPollSize) {
+      return &nodesPool[freeNodeIndex++];
+    } else {
+      return NULL;
+    }
   } else {
-    return pop(&freeNodesStack);
+    return &nodesPool[pop(&freeNodesStack)];
   }
 }
