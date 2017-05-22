@@ -1,8 +1,3 @@
-
-main
-
-test.c
-
 *.o
 
 runTest
