@@ -103,3 +103,32 @@ LIST *list = ListCreate();
   EXPECT_EQ(c, *(int*)ListNext(list));
   EXPECT_EQ(d, *(int*)ListNext(list));
 }
+
+// Test4: remove
+TEST(MaxSubArraySum, search) {
+  LIST *list1 = ListCreate();
+
+  // initialization of temp1
+  int a = 1;
+  ListAppend(list1, &a);
+
+  int b = 2;
+  ListAppend(list1, &b);
+
+  int c = 3;
+  ListAppend(list1, &c);
+
+  int d = 4;
+  ListAppend(list1, &d);
+
+  ListFirst(list1);
+
+  int target1 = 4;
+  void* searchRes1 = ListSearch(list1, intEqualTo, &target1);
+  EXPECT_EQ(target1, *(int*)searchRes1);
+
+  // int target2 = 5;
+  // mvoid* searchRes2 = ListSearch(list1, intEqualTo, &target2);
+  // EXPECT_EQ(NULL, *(int*)searchRes2);
+}
+

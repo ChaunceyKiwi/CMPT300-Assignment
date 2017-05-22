@@ -302,6 +302,30 @@ void *ListTrim(LIST* list) {
   return ListRemove(list);
 }
 
+void *ListSearch(LIST* list, int comparator(LIST*, void*), void* comparisonArg) {
+  while(list->curr != NULL) {
+    // If item if found
+    if (comparator(list, comparisonArg) == 1) {
+      return list->curr->val;
+    }
+
+    // If not found
+    else {
+      list->curr = list->curr->next;
+    };
+  }
+
+  // The current pointer is left beyond the end of the list
+  list->currFlag = 1;
+  return NULL;
+}
+
+
+//////////////////////////////////////////////
+// Comparator routine functions declaration
+int intEqualTo(LIST* list, void* comparisonArg) {
+  return *(int*)(list->curr->val) == *(int*)(comparisonArg);
+}
 
 //////////////////////////////////////////////
 // Helper functions implementation
@@ -375,8 +399,8 @@ void FreeNode(ListNode* listNode) {
 //////////////////////////////////////////////
 // Testing functions implementation
 
-void ListPrint(LIST *list1) {
-  ListNode* iter = list1->head;
+void ListPrint(LIST *list) {
+  ListNode* iter = list->head;
   while(iter != NULL) {
     printf("%d ", *(int*)iter->val);
     iter = iter->next;

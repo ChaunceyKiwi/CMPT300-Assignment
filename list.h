@@ -93,6 +93,21 @@ void ListFree(LIST* list, void *itemFree(LIST* list));
 // Return last item and take it out of list. Make the new last item the current one.
 void *ListTrim(LIST* list);
 
+// Searches list starting at the current item until the end is reached or a match is
+// found. In this context, a match is determined by the comparator parameter. This
+// parameter is a pointer to a routine that takes as its first argument an item pointer,
+// and as its second argument comparisonArg. Comparator returns 0 if the item and
+// comparisonArg don't match, or 1 if they do. Exactly what constitutes a match is
+// up to the implementor of comparator. If a match is found, the current pointer is
+// left at the matched item and the pointer to that item is returned. If no match is
+// found, the current pointer is left beyond the end of the list and a NULL pointer
+// is returned.
+void *ListSearch(LIST* list, int comparator(LIST*, void*), void* comparisonArg);
+
+//////////////////////////////////////////////
+// Comparator routine functions declaration
+int intEqualTo(LIST* list, void* comparisonArg);
+
 //////////////////////////////////////////////
 // Testing functions declaration
 
