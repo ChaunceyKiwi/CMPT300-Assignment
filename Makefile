@@ -20,4 +20,4 @@ list.o: list.h
 test.o: list.h
 
 clean: 
-	rm *.o 
+	rm $(PROG) *.o 
