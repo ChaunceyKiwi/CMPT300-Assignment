@@ -81,7 +81,7 @@ int ListAppend(LIST *list, void *item);
 /* Adds item to the front of list, and makes the new item the current one. */
 int ListPrepend(LIST *list, void *item);
 
-/* Returns current item and take it out of list. Make the next item the current one. */
+/* Returns current item and take it out of list. */
 void *ListRemove(LIST *list);
 
 /* Adds list2 to the end of list1. */
@@ -90,7 +90,7 @@ void ListConcat(LIST *list1, LIST *list2);
 /* Deletes list */
 void ListFree(LIST *list, void *itemFree(LIST *));
 
-/* Returns last item and take it out of list. Make the new last item the current one. */
+/* Returns last item and take it out of list. */
 void *ListTrim(LIST *list);
 
 /* Searches an item in the list */
@@ -101,7 +101,7 @@ void *ListSearch(LIST *list, int comparator(LIST *, void *), void *comparisonArg
 */
 
 void updateListNode(ListNode* listNode, void* item, ListNode* prev, ListNode* next);
-void updateList(LIST* list, int len, int currFlag,ListNode* head, ListNode* tail, ListNode* curr);
+void updateList(LIST* list, int len, int currFlag, ListNode* head, ListNode* tail, ListNode* curr);
 LIST* allocateList();
 ListNode* allocateNode();
 void FreeList(LIST* list);

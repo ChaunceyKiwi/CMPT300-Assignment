@@ -95,15 +95,15 @@ void *ListNext(LIST* list) {
   if (list->curr == NULL) {
     return NULL;
   }
-  
+
   list->curr = list->curr->next;
   void *res = ListCurr(list);
-  
+
   // set flag when the current pointer goes beyond the tail
   if (res == NULL) {
     list->currFlag = 1;
   }
-  
+
   return res;
 }
 
@@ -119,15 +119,15 @@ void *ListPrev(LIST* list) {
   if (list->curr == NULL) {
     return NULL;
   }
-  
+
   list->curr = list->curr->prev;
   void *res = ListCurr(list);
-  
+
   // set flag when the current pointer goes before the head
   if (res == NULL) {
     list->currFlag = -1;
   }
-  
+
   return res;
 }
 
@@ -162,32 +162,32 @@ int ListAdd(LIST* list, void* item) {
       return ListAppend(list, item);
     }
   }
-  
+
   // Fail case 1: Current pointer is not set yet
   if (list->curr == NULL) {
     return -1;
   }
-  
+
   // Try allocating space for new list node
   ListNode* temp = list->curr;
   list->curr = allocateNode();
-  
+
   // Fail case 2: No more free node in nodes pool
   if (list->curr == NULL) {
     return -1;
   }
-  
+
   // Success case 2
   else {
     updateListNode(list->curr, item, temp, temp->next);
-    
+
     // If current pointer is at the tail
     if (temp->next == NULL) {
       list->tail = list->curr;
     } else {
       temp->next->prev = list->curr;
     }
-    
+
     temp->next = list->curr;
     list->len++;
     return 0;
@@ -212,32 +212,32 @@ int ListInsert(LIST* list, void* item) {
       return ListAppend(list, item);
     }
   }
-  
+
   // Fail case 1: Current pointer is not set yet
   if (list->curr == NULL) {
     return -1;
   }
-  
+
   // Try allocating space for new list node
   ListNode* temp = list->curr;
   list->curr = allocateNode();
-  
+
   // Fail case 2: No more free node in nodes pool
   if (list->curr == NULL) {
     return -1;
   }
-  
+
   // Success case 2
   else {
     updateListNode(list->curr, item, temp->prev, temp);
-    
+
     // If current pointer is at the head
     if (temp->prev != NULL) {
       temp->prev->next = list->curr;
     } else {
       list->head = list->curr;
     }
-    
+
     temp->prev = list->curr;
     list->len++;
     return 0;
@@ -253,12 +253,12 @@ int ListInsert(LIST* list, void* item) {
 int ListAppend(LIST* list, void* item) {
   // Try allocating space for new list node
   list->curr = allocateNode();
-  
+
   // Fail case: No more free nodes in nodes pool
   if (list->curr == NULL) {
     return -1;
   }
-  
+
   // Success case
   else {
     // If the list is empty
@@ -267,7 +267,7 @@ int ListAppend(LIST* list, void* item) {
       updateList(list, list->len + 1, 0, list->curr, list->curr, list->curr);
       return 0;
     }
-    
+
     // If the list is not empty
     else {
       updateListNode(list->curr, item, list->tail, NULL);
@@ -288,12 +288,12 @@ int ListAppend(LIST* list, void* item) {
 int ListPrepend(LIST* list, void* item) {
   // Try allocating space for new list node
   list->curr = allocateNode();
-  
+
   // Fail case: No more free nodes in nodes pool
   if (list->curr == NULL) {
     return -1;
   }
-  
+
   // Success case
   else {
     // If the list is empty
@@ -302,7 +302,7 @@ int ListPrepend(LIST* list, void* item) {
       updateList(list, list->len + 1, 0, list->curr, list->curr, list->curr);
       return 0;
     }
-    
+
     // If the list is not empty
     else {
       updateListNode(list->curr, item, NULL, list->head);
@@ -326,7 +326,7 @@ void *ListRemove(LIST* list) {
   } else {
     ListNode* temp = list->curr;
     void* item = temp->val;
-    
+
     // Current list pointer points at the only node in the list
     if (list->curr == list->head && list->curr == list->tail) {
       list->head = NULL;
@@ -334,28 +334,28 @@ void *ListRemove(LIST* list) {
       list->curr = NULL;
       list->currFlag = -1;
     }
-    
+
     // Current list pointer points at head
     else if (list->curr == list->head) {
       temp->next->prev = NULL;
       list->head = temp->next;
       list->curr = list->head;
     }
-    
+
     // Current list pointer points at tail
     else if (list->curr == list->tail) {
       temp->prev->next = NULL;
       list->tail = temp->prev;
       list->curr = list->tail;
     }
-    
+
     // Current list pointer points at middle item
     else {
       temp->prev->next = temp->next;
       temp->next->prev = temp->prev;
       list->curr = temp->next;
     }
-    
+
     list->len--;
     FreeNode(temp);
     return item;
@@ -485,7 +485,7 @@ ListNode* allocateNode() {
 
 void FreeList(LIST* list) {
   list->next = NULL;
-  
+
   if (freeHeadList == NULL) {
     freeHeadList = list;
   } else {
@@ -498,7 +498,7 @@ void FreeNode(ListNode* listNode) {
   listNode->prev = NULL;
   listNode->val = NULL;
   listNode->next = NULL;
-  
+
   if (freeNodeList == NULL) {
     freeNodeList = listNode;
   } else {
