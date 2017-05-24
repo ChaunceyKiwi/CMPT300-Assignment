@@ -1,29 +1,47 @@
+/*------------------------------------------------------
+ *
+ *  list.c
+ *
+ *  This file contain the routine functions to implement
+ *  the LIST abstract data type
+ *
+ *
+ *  Name         : Chauncey Liu
+ *  Student ID   : 301295771
+ *  SFU username : cla284
+ *  Course       : CMPT 300 Operating Systems I, Summer 2017
+ *  Instructor   : Harinder Khangura
+ *  TA           : Amineh Dadsetan
+ *
+ *  Created by Chauncey on 2017-05-22.
+ *  Copyright (c) 2017 Chauncey. All rights reserved.
+ *
+ *------------------------------------------------------
+ */
+
 #include "../include/list.h"
 
-//////////////////////////////////////////////
-// Global initialization
 
-LIST headsPool[headsPoolSize];
-int freeHeadIndex = 0;
-ListNode nodesPool[nodesPollSize];
-int freeNodeIndex = 0;
-LIST *freeHeadList = NULL;
-ListNode *freeNodeList = NULL;
+/***********************************************************
+*    Global initialization
+*/
 
-//////////////////////////////////////////////
-// Helper functions declaration
+LIST headsPool[headsPoolSize];      /* Statically pre-allocated array pool for heads */
+int freeHeadIndex = 0;              /* Used to indicate the first head in headsPool that has never been used before */
+LIST *freeHeadList = NULL;          /* Used to indicate the free heads that are recycled after removal */
+ListNode nodesPool[nodesPollSize];  /* Statically pre-allocated array pool for nodes */
+int freeNodeIndex = 0;              /* Used to indicate the first head in nodesPool that has never been used before */
+ListNode *freeNodeList = NULL;      /* Used to indicate the free nodes that are recycled after removal */
 
-void updateListNode(ListNode* listNode, void* item, ListNode* prev, ListNode* next);
-void updateList(LIST* list, int len, int currFlag,ListNode* head, ListNode* tail, ListNode* curr);
-LIST* allocateList();
-ListNode* allocateNode();
-void FreeList(LIST* list);
-void FreeNode(ListNode* listNode);
-void ListConcat(LIST* list1, LIST* list2);
+/***********************************************************
+*   Routine functions implementation
+*/
 
-//////////////////////////////////////////////
-// Routine functions implementation
 
+/**
+ * Makes and returns a new, empty list
+ * @return Returns its reference on success. Returns a NULL pointer on failure.
+ */
 LIST *ListCreate() {
   LIST *list= allocateList();
   if (list != NULL) {
@@ -33,23 +51,47 @@ LIST *ListCreate() {
   return list;
 }
 
+
+/**
+ * Returns the number of items in list
+ * @param list the list to be counted
+ * @return the number of items in list
+ */
 int ListCount(LIST* list) {
   return list->len;
 }
 
+/**
+ * Makes the first item the current item
+ * @param list the current pointer of which is
+ * to be located at the first item
+ * @return a pointer to the first item in list
+ */
 void *ListFirst(LIST* list) {
   list->curr = list->head;
   return ListCurr(list);
 }
 
+/**
+ * Makes the last item the current item
+ * @param list the current pointer of which is
+ * to be located at the last item
+ * @return a pointer to the last item in list
+ */
 void *ListLast(LIST* list) {
   list->curr = list->tail;
   return ListCurr(list);
 }
 
+/**
+ * Advances list's current item by one
+ * @param list the list to be advanced
+ * @return a pointer to the new current item. If
+ * this operation advances the current item beyond
+ * the end of the list, a NULL pointer is returned
+ */
 void *ListNext(LIST* list) {
   // If the current pointer points out of the list, return NULL
-  // No backtracking
   if (list->curr == NULL) {
     return NULL;
   }
@@ -65,9 +107,15 @@ void *ListNext(LIST* list) {
   return res;
 }
 
+/**
+ * Backs up list's current item by one
+ * @param list the list to be backed up
+ * @return a pointer to the new current item. If
+ * this operation backs up the current item beyond
+ * the start of the list, a NULL pointer is returned.
+ */
 void *ListPrev(LIST* list) {
   // If the current pointer points out of the list, return NULL
-  // No backtracking
   if (list->curr == NULL) {
     return NULL;
   }
@@ -83,6 +131,11 @@ void *ListPrev(LIST* list) {
   return res;
 }
 
+/**
+ * Returns a pointer to the current item in list
+ * @param list the current pointer of which is to be returned
+ * @return A pointer to the current item in list.
+ */
 void *ListCurr(LIST* list) {
   if (list->curr != NULL) {
     return list->curr->val;
@@ -91,6 +144,12 @@ void *ListCurr(LIST* list) {
   }
 }
 
+/**
+ * Adds the new item to list directly after the current item
+ * @param list list to be added an item
+ * @param item item to be added to list
+ * @return 0 on success, -1 on failure
+ */
 int ListAdd(LIST* list, void* item) {
   // Success case 1
   if (list->curr == NULL && list->currFlag != 0) {
@@ -135,6 +194,12 @@ int ListAdd(LIST* list, void* item) {
   }
 }
 
+/**
+ * Adds item to list directly before the current item
+ * @param list list to be inserted
+ * @param item item to insert
+ * @return 0 on success, -1 on failure
+ */
 int ListInsert(LIST* list, void* item) {
   // Success case 1
   if (list->curr == NULL && list->currFlag != 0) {
@@ -179,6 +244,12 @@ int ListInsert(LIST* list, void* item) {
   }
 }
 
+/**
+ * Adds item to the end of list
+ * @param list the list to be appended
+ * @param item the item to append
+ * @return 0 on success, -1 on failure
+ */
 int ListAppend(LIST* list, void* item) {
   // Try allocating space for new list node
   list->curr = allocateNode();
@@ -208,6 +279,12 @@ int ListAppend(LIST* list, void* item) {
   }
 }
 
+/**
+ * Adds item to the front of list
+ * @param list the list to be prepended
+ * @param item the item to prepend
+ * @return 0 on success, -1 on failure
+ */
 int ListPrepend(LIST* list, void* item) {
   // Try allocating space for new list node
   list->curr = allocateNode();
@@ -237,6 +314,11 @@ int ListPrepend(LIST* list, void* item) {
   }
 }
 
+/**
+ * Take current item out of list
+ * @param list the current item of which is to be removed
+ * @return current item of the list
+ */
 void *ListRemove(LIST* list) {
   // If current list pointer points out of the list
   if (list->curr == NULL) {
@@ -280,6 +362,11 @@ void *ListRemove(LIST* list) {
   }
 }
 
+/**
+ * Adds list2 to the end of list1.
+ * @param list1 the list to be concatenate
+ * @param list2 the list to concatenate
+ */
 void ListConcat(LIST* list1, LIST* list2) {
   // Do concatenation only when both of the lists are not NULL
   if (list1 != NULL && list2 != NULL) {
@@ -289,7 +376,12 @@ void ListConcat(LIST* list1, LIST* list2) {
   }
 }
 
-void ListFree(LIST* list, void *itemFree(LIST* list)) {
+/**
+ * Deletes list.
+ * @param list the list to be deleted
+ * @param itemFree a pointer to a routine that frees an item.
+ */
+void ListFree(LIST* list, void *itemFree(LIST*)) {
   ListFirst(list);
   while(list->curr != NULL) {
     (*itemFree)(list);
@@ -297,11 +389,28 @@ void ListFree(LIST* list, void *itemFree(LIST* list)) {
   FreeList(list);
 }
 
+/**
+ * Take last item out of list.
+ * @param list the list to be trimmed
+ * @return last item item of the original list
+ */
 void *ListTrim(LIST* list) {
   ListLast(list);
   return ListRemove(list);
 }
 
+/**
+ * Search item in the list
+ * @param list the list to be searched on
+ * @param comparator a pointer to a routine that takes
+ * as its first argument an item pointer, and as its
+ * second argument comparisonArg.
+ * @param comparisonArg the argument for comparator
+ * @return If a match is found, the current pointer is left at
+ * the matched item and the pointer to that item is returned.
+ * If no match isfound, the current pointer is left beyond
+ * the end of the list and a NULL pointer is returned.
+ */
 void *ListSearch(LIST* list, int comparator(LIST*, void*), void* comparisonArg) {
   while(list->curr != NULL) {
     // If item if found
@@ -320,15 +429,17 @@ void *ListSearch(LIST* list, int comparator(LIST*, void*), void* comparisonArg) 
   return NULL;
 }
 
+/***********************************************************
+*   Comparator routine functions declaration
+*/
 
-//////////////////////////////////////////////
-// Comparator routine functions declaration
 int intEqualTo(LIST* list, void* comparisonArg) {
   return *(int*)(list->curr->val) == *(int*)(comparisonArg);
 }
 
-//////////////////////////////////////////////
-// Helper functions implementation
+/***********************************************************
+*   Helper functions implementation
+*/
 
 void updateListNode(ListNode* listNode, void* item, ListNode* prev, ListNode* next) {
   listNode->val = item;
@@ -396,8 +507,9 @@ void FreeNode(ListNode* listNode) {
   }
 }
 
-//////////////////////////////////////////////
-// Testing functions implementation
+/***********************************************************
+*   Testing functions implementation
+*/
 
 void ListPrint(LIST *list) {
   ListNode* iter = list->head;

@@ -1,10 +1,27 @@
-#ifndef list_h
-#define list_h
+/*------------------------------------------------------
+ *
+ *  list.h
+ *
+ *  Name         : Chauncey Liu
+ *  Student ID   : 301295771
+ *  SFU username : cla284
+ *  Course       : CMPT 300 Operating Systems I, Summer 2017
+ *  Instructor   : Harinder Khangura
+ *  TA           : Amineh Dadsetan
+ *
+ *  Created by Chauncey on 2017-05-22.
+ *  Copyright (c) 2017 Chauncey. All rights reserved.
+ *
+ *------------------------------------------------------
+ */
+
+#ifndef OS_ASS1_LIST_H_
+#define OS_ASS1_LIST_H_
 
 #include <stdio.h>
 
-#define headsPoolSize 20
-#define nodesPollSize 1000
+#define headsPoolSize 20     /* The total number of heads available */
+#define nodesPollSize 1000   /* The total number of nodes available */
 
 typedef struct ListNode_ {
   void *val;
@@ -14,103 +31,92 @@ typedef struct ListNode_ {
 
 typedef struct List {
   int len;
-  int currFlag; // -1: before head, 0: in the list, 1: beyond tail
+  int currFlag;   /* -1: before head, 0: in the list, 1: beyond tail */
   ListNode *head;
   ListNode *tail;
   ListNode *curr;
-  struct List *next; // used for freeHeadList
+  struct List *next; /* used for freeHeadList */
 } LIST;
 
-//////////////////////////////////////////////
-// Routine functions declaration
+/***********************************************************
+*   Routine functions declaration
+*/
 
-// Makes a new, empty list, and returns its reference
-// on success. Returns a NULL pointer on failure.
+/* Makes and returns a new, empty list */
 LIST *ListCreate();
 
-// Returns the number of items in list
-int ListCount(LIST* list);
+/* Returns the number of items in list */
+int ListCount(LIST *list);
 
-// Returns a pointer to the first item in list
-// and makes the first item the current item.
-void *ListFirst(LIST* list);
+/* Returns a pointer to the first item in list,
+ * and makes the first item the current item. */
+void *ListFirst(LIST *list);
 
-// Returns a pointer to the last item in list
-// and makes the last item the current one.
-void *ListLast(LIST* list);
+/* Returns a pointer to the last item in list,
+ * and makes the last item the current one. */
+void *ListLast(LIST *list);
 
-// Advances list's current item by one, and returns a
-// pointer to the new current item. If this operation
-// advances the current item beyond the end of the list,
-// a NULL pointer is returned.
-void *ListNext(LIST* list);
+/* Advances list's current item by one, and
+ * returns a pointer to the new current item. */
+void *ListNext(LIST *list);
 
-// Backs up list's current item by one, and returns a
-// pointer to the new current item. If this operation
-// backs up the current item beyond the start of the
-// list, a NULL pointer is returned.
-void *ListPrev(LIST* list);
+/* Backs up list's current item by one, and
+ * returns a pointer to the new current item. */
+void *ListPrev(LIST *list);
 
-// Returns a pointer to the current item in list.
-void *ListCurr(LIST* list);
+/* Returns a pointer to the current item in list. */
+void *ListCurr(LIST *list);
 
-// Adds the new item to list directly after the
-// current item, and makes item the current item.
-// If the current pointer is before the start of
-// the list, the item is added at the start. If the
-// current pointer is beyond the end of the list,
-// the item is added at the end.
-// Returns 0 on success, -1 on failure.
-int ListAdd(LIST* list, void* item);
+/* Adds the new item to list directly after the
+ * current item, and makes item the current item. */
+int ListAdd(LIST *list, void *item);
 
-// Adds item to list directly before the current item,
-// and makes the new item the current one. If the current
-// pointer is before the start of the list, the item is
-// added at the start. If the current pointer is beyond
-// the end of the list, the item is added at the end.
-// Returns 0 on success, -1 on failure.
-int ListInsert(LIST* list, void* item);
+/* Adds item to list directly before the current item,
+ * and makes the new item the current one. */
+int ListInsert(LIST *list, void *item);
 
-// Adds item to the end of list, and makes the new item the
-// current one. Returns 0 on success, -1 on failure.
-int ListAppend(LIST* list, void* item);
+/* Adds item to the end of list, and makes the new item the current one. */
+int ListAppend(LIST *list, void *item);
 
-// Adds item to the front of list, and makes the new item the
-// current one. Returns 0 on success, -1 on failure.
-int ListPrepend(LIST* list, void* item);
+/* Adds item to the front of list, and makes the new item the current one. */
+int ListPrepend(LIST *list, void *item);
 
-// Return current item and take it out of list. Make the next item the current one.
-void *ListRemove(LIST* list);
+/* Returns current item and take it out of list. Make the next item the current one. */
+void *ListRemove(LIST *list);
 
-// Adds list2 to the end of list1. The current pointer is set to the
-// current pointer of list1. List2 no longer exists after the operation.
-void ListConcat(LIST* list1, LIST* list2);
+/* Adds list2 to the end of list1. */
+void ListConcat(LIST *list1, LIST *list2);
 
-// delete list. itemFree is a pointer to a routine that frees an item.
-// It should be invoked (within ListFree) as: (*itemFree)(itemToBeFreed);
-void ListFree(LIST* list, void *itemFree(LIST* list));
+/* Deletes list */
+void ListFree(LIST *list, void *itemFree(LIST *));
 
-// Return last item and take it out of list. Make the new last item the current one.
-void *ListTrim(LIST* list);
+/* Returns last item and take it out of list. Make the new last item the current one. */
+void *ListTrim(LIST *list);
 
-// Searches list starting at the current item until the end is reached or a match is
-// found. In this context, a match is determined by the comparator parameter. This
-// parameter is a pointer to a routine that takes as its first argument an item pointer,
-// and as its second argument comparisonArg. Comparator returns 0 if the item and
-// comparisonArg don't match, or 1 if they do. Exactly what constitutes a match is
-// up to the implementor of comparator. If a match is found, the current pointer is
-// left at the matched item and the pointer to that item is returned. If no match is
-// found, the current pointer is left beyond the end of the list and a NULL pointer
-// is returned.
-void *ListSearch(LIST* list, int comparator(LIST*, void*), void* comparisonArg);
+/* Searches an item in the list */
+void *ListSearch(LIST *list, int comparator(LIST *, void *), void *comparisonArg);
 
-//////////////////////////////////////////////
-// Comparator routine functions declaration
-int intEqualTo(LIST* list, void* comparisonArg);
+/***********************************************************
+*   Helper functions declaration
+*/
 
-//////////////////////////////////////////////
-// Testing functions declaration
+void updateListNode(ListNode* listNode, void* item, ListNode* prev, ListNode* next);
+void updateList(LIST* list, int len, int currFlag,ListNode* head, ListNode* tail, ListNode* curr);
+LIST* allocateList();
+ListNode* allocateNode();
+void FreeList(LIST* list);
+void FreeNode(ListNode* listNode);
+
+/***********************************************************
+*   Comparator routine functions declaration
+*/
+
+int intEqualTo(LIST *list, void *comparisonArg);
+
+/***********************************************************
+*   Testing functions declaration
+*/
 
 void ListPrint(LIST *list1);
 
-#endif /* list_h */
+#endif // OS_ASS1_LIST_H_
