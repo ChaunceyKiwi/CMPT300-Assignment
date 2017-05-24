@@ -16,8 +16,11 @@
 # Remember to tweak this if you move this file.
 GTEST_DIR = .
 
-# Where to find user code.
-USER_DIR = ..
+# Where to find source code
+SRC_DIR = ../src
+
+# Where to find header
+INCLUDE_DIR = ../include
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
@@ -71,12 +74,11 @@ gtest_main.a : gtest-all.o gtest_main.o
 # gtest_main.a, depending on whether it defines its own main()
 # function.
 
-list.o : $(USER_DIR)/list.c $(USER_DIR)/list.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/list.c
+list.o : $(SRC_DIR)/list.c $(INCLUDE_DIR)/list.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(SRC_DIR)/list.c
 
-googleTest.o : $(USER_DIR)/googleTest.c \
-                     $(USER_DIR)/list.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/googleTest.c
+googleTest.o : googleTest.c $(INCLUDE_DIR)/list.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c googleTest.c
 
 googleTest : list.o googleTest.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@

@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "list.h"
+#include "../include/list.h"
 #include <stdio.h>
 
 // Test1: AppendFirstNextTest
