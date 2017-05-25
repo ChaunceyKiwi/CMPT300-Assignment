@@ -1,1 +1,3 @@
 # CMPT300 ASSIGNMENT1 
+## Log
+20170523 Comment added
