@@ -100,12 +100,23 @@ void *ListSearch(LIST *list, int comparator(LIST *, void *), void *comparisonArg
 *   Helper functions declaration
 */
 
-void updateListNode(ListNode* listNode, void* item, ListNode* prev, ListNode* next);
-void updateList(LIST* list, int len, int currFlag, ListNode* head, ListNode* tail, ListNode* curr);
+/* Finds and returns a free list */
 LIST* allocateList();
+
+/* Updates the value of members in a list */
+void updateList(LIST* list, int len, int currFlag, ListNode* head, ListNode* tail, ListNode* curr);
+
+/* Puts a list back to free list pool */
+void freeList(LIST* list);
+
+/* Finds and returns a free list node */
 ListNode* allocateNode();
-void FreeList(LIST* list);
-void FreeNode(ListNode* listNode);
+
+/* Updates the value of members in a list node */
+void updateListNode(ListNode* listNode, void* item, ListNode* prev, ListNode* next);
+
+/* Puts a list node back to free list node pool */
+void freeNode(ListNode* listNode);
 
 /***********************************************************
 *   Comparator routine functions declaration

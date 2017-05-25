@@ -357,7 +357,7 @@ void *ListRemove(LIST* list) {
     }
 
     list->len--;
-    FreeNode(temp);
+    freeNode(temp);
     return item;
   }
 }
@@ -372,7 +372,7 @@ void ListConcat(LIST* list1, LIST* list2) {
   if (list1 != NULL && list2 != NULL) {
     list1->tail->next = list2->head;
     list2->head->prev = list1->tail;
-    FreeList(list2);
+    freeList(list2);
   }
 }
 
@@ -386,7 +386,7 @@ void ListFree(LIST* list, void *itemFree(LIST*)) {
   while(list->curr != NULL) {
     (*itemFree)(list);
   }
-  FreeList(list);
+  freeList(list);
 }
 
 /**
@@ -441,20 +441,10 @@ int intEqualTo(LIST* list, void* comparisonArg) {
 *   Helper functions implementation
 */
 
-void updateListNode(ListNode* listNode, void* item, ListNode* prev, ListNode* next) {
-  listNode->val = item;
-  listNode->prev = prev;
-  listNode->next = next;
-}
-
-void updateList(LIST* list, int len, int currFlag, ListNode* head, ListNode* tail, ListNode* curr) {
-  list->len = len;
-  list->currFlag = currFlag;
-  list->head = head;
-  list->tail = tail;
-  list->curr = curr;
-}
-
+/**
+ * Finds and returns a free list
+ * @return Returns its reference on success. Returns a NULL pointer on failure.
+ */
 LIST* allocateList() {
   if (freeHeadList == NULL) {
     if (freeHeadIndex < headsPoolSize) {
@@ -469,6 +459,42 @@ LIST* allocateList() {
   }
 }
 
+/**
+ * Updates the value of members in a list
+ * @param list the list to be updated
+ * @param len the value of list->len after updating
+ * @param currFlag the value of list->currFlag after updating
+ * @param head the value of list->head after updating
+ * @param tail the value of list->tail after updating
+ * @param curr the value of list->curr after updating
+ */
+void updateList(LIST* list, int len, int currFlag, ListNode* head, ListNode* tail, ListNode* curr) {
+  list->len = len;
+  list->currFlag = currFlag;
+  list->head = head;
+  list->tail = tail;
+  list->curr = curr;
+}
+
+/**
+ * Puts a list back to free list pool
+ * @param list the list to be free
+ */
+void freeList(LIST* list) {
+  list->next = NULL;
+
+  if (freeHeadList == NULL) {
+    freeHeadList = list;
+  } else {
+    list->next = freeHeadList;
+    freeHeadList = list;
+  }
+}
+
+/**
+ * Finds and returns a free list node
+ * @return Returns its reference on success. Returns a NULL pointer on failure.
+ */
 ListNode* allocateNode() {
   if (freeNodeList == NULL) {
     if (freeNodeIndex < nodesPollSize) {
@@ -483,18 +509,25 @@ ListNode* allocateNode() {
   }
 }
 
-void FreeList(LIST* list) {
-  list->next = NULL;
 
-  if (freeHeadList == NULL) {
-    freeHeadList = list;
-  } else {
-    list->next = freeHeadList;
-    freeHeadList = list;
-  }
+/**
+ * Updates the value of members in a list node
+ * @param listNode the list node to be updated
+ * @param item the value of list->item after updating
+ * @param prev the value of list->prev after updating
+ * @param next the value of list->next after updating
+ */
+void updateListNode(ListNode* listNode, void* item, ListNode* prev, ListNode* next) {
+  listNode->val = item;
+  listNode->prev = prev;
+  listNode->next = next;
 }
 
-void FreeNode(ListNode* listNode) {
+/**
+ * Puts a list node back to free list node pool
+ * @param the list node to be free
+ */
+void freeNode(ListNode* listNode) {
   listNode->prev = NULL;
   listNode->val = NULL;
   listNode->next = NULL;
