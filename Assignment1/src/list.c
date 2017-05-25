@@ -91,9 +91,20 @@ void *ListLast(LIST* list) {
  * the end of the list, a NULL pointer is returned
  */
 void *ListNext(LIST* list) {
-  // If the current pointer points out of the list, return NULL
   if (list->curr == NULL) {
-    return NULL;
+    // If the current pointer points before the head of the list
+    if (list->currFlag == -1) {
+      return ListFirst(list);
+    }
+
+    // If the current pointer points beyond the tail of the list
+    else if (list->currFlag == 1){
+      return NULL;
+    }
+
+    else {
+      printf("Error: current pointer points at nowhere");
+    }
   }
 
   list->curr = list->curr->next;
@@ -115,9 +126,20 @@ void *ListNext(LIST* list) {
  * the start of the list, a NULL pointer is returned.
  */
 void *ListPrev(LIST* list) {
-  // If the current pointer points out of the list, return NULL
   if (list->curr == NULL) {
-    return NULL;
+    // If the current pointer points beyond the tail of the list
+    if (list->currFlag == 1) {
+      return ListLast(list);
+    }
+
+    // If the current pointer points before the head of the list
+    else if (list->currFlag == -1){
+      return NULL;
+    }
+
+    else {
+      printf("Error: current pointer points at nowhere");
+    }
   }
 
   list->curr = list->curr->prev;
