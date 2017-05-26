@@ -44,13 +44,16 @@ ListNode *freeNodeList = NULL;      /* Used to indicate the free nodes that are 
  */
 LIST *ListCreate() {
   LIST *list= allocateList();
+
   if (list != NULL) {
     /* Initialize the current pointer before the header */
     updateList(list, 0, -1, NULL, NULL, NULL);
+  } else {
+    printf("Failure: All heads are exhausted.\n");
   }
+
   return list;
 }
-
 
 /**
  * Returns the number of items in list
@@ -196,6 +199,7 @@ int ListAdd(LIST* list, void* item) {
 
   /* Fail case 2: No more free node in nodes pool */
   if (list->curr == NULL) {
+    printf("Failure: All nodes are exhausted.\n");
     return -1;
   }
 
@@ -399,20 +403,28 @@ void ListConcat(LIST* list1, LIST* list2) {
 }
 
 /**
- * Deletes list.
+ * Deletes a list.
  * @param list the list to be deleted
  * @param itemFree a pointer to a routine that frees an item.
  */
 void ListFree(LIST* list, void *itemFree(LIST*)) {
-  ListFirst(list);
-  while(list->curr != NULL) {
-    (*itemFree)(list);
+  if (list != NULL && itemFree != NULL) {
+
+    /* 1. Free all nodes in the list */
+    ListFirst(list);
+    while(list->curr != NULL) {
+      (*itemFree)(list);
+    }
+
+    /* 2. Free the list */
+    freeList(list);
+  } else {
+    printf("Wrong inputs for ListFree()!\n");
   }
-  freeList(list);
 }
 
 /**
- * Take last item out of list.
+ * Takes last item out of list.
  * @param list the list to be trimmed
  * @return last item item of the original list
  */
@@ -422,7 +434,7 @@ void *ListTrim(LIST* list) {
 }
 
 /**
- * Search item in the list
+ * Searches item in the list
  * @param list the list to be searched on
  * @param comparator a pointer to a routine that takes
  * as its first argument an item pointer, and as its
@@ -468,11 +480,12 @@ int intEqualTo(LIST* list, void* comparisonArg) {
  * @return Returns its reference on success. Returns a NULL pointer on failure.
  */
 LIST* allocateList() {
+  /* If no recycled list available, try brand new list*/
   if (freeHeadList == NULL) {
     if (freeHeadIndex < headsPoolSize) {
       return &headsPool[freeHeadIndex++];
     } else {
-      return NULL;
+      return NULL; // No brand new list left
     }
   } else {
     LIST *listFree = freeHeadList;

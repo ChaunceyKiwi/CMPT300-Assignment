@@ -32,7 +32,7 @@ CXXFLAGS += -g -Wall -Wextra -pthread
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
-TESTS = test1 test2
+TESTS = test1 test2 unit_test1
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -88,3 +88,11 @@ test2.o : test2.c $(INCLUDE_DIR)/list.h $(GTEST_HEADERS)
 
 test2 : list.o test2.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
+
+unit_test1.o : unit_test1.c $(INCLUDE_DIR)/list.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c unit_test1.c
+
+unit_test1 : list.o unit_test1.o gtest_main.a
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
+
+
