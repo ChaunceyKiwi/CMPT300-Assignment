@@ -3,7 +3,7 @@ dependencies:
     - cd ./Assignment1/test; make;
 test:
   override:
-    - cd ./Assignment1/test; ./googleTest;
+    - cd ./Assignment1/test; ./test1 ./test2;
 checkout:
   post:
     - git submodule init
