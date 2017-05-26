@@ -130,4 +130,4 @@ int intEqualTo(LIST *list, void *comparisonArg);
 
 void ListPrint(LIST *list1);
 
-#endif // OS_ASS1_LIST_H_
+#endif /* OS_ASS1_LIST_H_ */
