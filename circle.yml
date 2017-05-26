@@ -1,9 +1,9 @@
 dependencies:
   override:
-    - cd test; make;
+    - cd ./Assignment1/test; make;
 test:
   override:
-    - cd bin; ./gtest_myint
+    - ./googleTest
 checkout:
   post:
     - git submodule init
