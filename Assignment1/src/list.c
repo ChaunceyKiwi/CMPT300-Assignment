@@ -20,7 +20,7 @@
  */
 
 #include "../include/list.h"
-
+#include <assert.h>
 
 /***********************************************************
 *    Global initialization
@@ -40,7 +40,7 @@ ListNode *freeNodeList = NULL;      /* Used to indicate the free nodes that are 
 
 /**
  * Makes and returns a new, empty list
- * @return Returns its reference on success. Returns a NULL pointer on failure.
+ * @return Its reference on success. A NULL pointer on failure.
  */
 LIST *ListCreate() {
   LIST *list= allocateList();
@@ -57,31 +57,32 @@ LIST *ListCreate() {
 
 /**
  * Returns the number of items in list
- * @param list the list to be counted
+ * @param list the target list
  * @return the number of items in list
  */
 int ListCount(LIST* list) {
+  assert(list != NULL);
   return list->len;
 }
 
 /**
  * Makes the first item the current item
- * @param list the current pointer of which is
- * to be located at the first item
+ * @param list the target list
  * @return a pointer to the first item in list
  */
 void *ListFirst(LIST* list) {
+  assert(list != NULL);
   list->curr = list->head;
   return ListCurr(list);
 }
 
 /**
  * Makes the last item the current item
- * @param list the current pointer of which is
- * to be located at the last item
+ * @param list the target list
  * @return a pointer to the last item in list
  */
 void *ListLast(LIST* list) {
+  assert(list != NULL);
   list->curr = list->tail;
   return ListCurr(list);
 }
@@ -94,6 +95,9 @@ void *ListLast(LIST* list) {
  * the end of the list, a NULL pointer is returned
  */
 void *ListNext(LIST* list) {
+  assert(list != NULL);
+  assert(list->curr != NULL || list->currFlag != 0);
+
   if (list->curr == NULL) {
     /* If the current pointer points before the head of the list */
     if (list->currFlag == -1) {
@@ -101,12 +105,8 @@ void *ListNext(LIST* list) {
     }
 
     /* If the current pointer points beyond the tail of the list */
-    else if (list->currFlag == 1){
+    else if (list->currFlag == 1) {
       return NULL;
-    }
-
-    else {
-      printf("Error: current pointer points at nowhere");
     }
   }
 
@@ -129,6 +129,9 @@ void *ListNext(LIST* list) {
  * the start of the list, a NULL pointer is returned.
  */
 void *ListPrev(LIST* list) {
+  assert(list != NULL);
+  assert(list->curr != NULL || list->currFlag != 0);
+
   if (list->curr == NULL) {
     /* If the current pointer points beyond the tail of the list */
     if (list->currFlag == 1) {
@@ -138,10 +141,6 @@ void *ListPrev(LIST* list) {
     /* If the current pointer points before the head of the list */
     else if (list->currFlag == -1){
       return NULL;
-    }
-
-    else {
-      printf("Error: current pointer points at nowhere");
     }
   }
 
@@ -158,10 +157,11 @@ void *ListPrev(LIST* list) {
 
 /**
  * Returns a pointer to the current item in list
- * @param list the current pointer of which is to be returned
+ * @param list the target list
  * @return A pointer to the current item in list.
  */
 void *ListCurr(LIST* list) {
+  assert(list != NULL);
   if (list->curr != NULL) {
     return list->curr->val;
   } else {
@@ -171,43 +171,38 @@ void *ListCurr(LIST* list) {
 
 /**
  * Adds the new item to list directly after the current item
- * @param list list to be added an item
+ * @param list the list to be added an item
  * @param item item to be added to list
  * @return 0 on success, -1 on failure
  */
 int ListAdd(LIST* list, void* item) {
+  assert(list != NULL && item != NULL);
+  assert(list->curr != NULL || list->currFlag != 0);
+
   /* Success case 1 */
-  if (list->curr == NULL && list->currFlag != 0) {
+  if (list->curr == NULL) {
     /* if the current pointer is before the head */
     if (list->currFlag == -1) {
       return ListPrepend(list, item);
     }
     /* if the current pointer is beyond the tail */
-    else {
+    else if (list->currFlag == 1){
       return ListAppend(list, item);
     }
-  }
-
-  /* Fail case 1: Current pointer is not set yet */
-  if (list->curr == NULL) {
-    return -1;
   }
 
   /* Try allocating space for new list node */
   ListNode* temp = list->curr;
   list->curr = allocateNode();
 
-  /* Fail case 2: No more free node in nodes pool */
+  /* Check if nodes are exhausted */
   if (list->curr == NULL) {
     printf("Failure: All nodes are exhausted.\n");
     return -1;
-  }
-
-  /* Success case 2 */
-  else {
+  } else {
     updateListNode(list->curr, item, temp, temp->next);
 
-    /* If current pointer is at the tail */
+    /* Check if current pointer is at the tail */
     if (temp->next == NULL) {
       list->tail = list->curr;
     } else {
@@ -222,42 +217,37 @@ int ListAdd(LIST* list, void* item) {
 
 /**
  * Adds item to list directly before the current item
- * @param list list to be inserted
+ * @param list the list to be inserted
  * @param item item to insert
  * @return 0 on success, -1 on failure
  */
 int ListInsert(LIST* list, void* item) {
+  assert(list != NULL && item != NULL);
+  assert(list->curr != NULL || list->currFlag != 0);
+
   /* Success case 1 */
-  if (list->curr == NULL && list->currFlag != 0) {
+  if (list->curr == NULL) {
     /* if the current pointer is before the head */
     if (list->currFlag == -1) {
       return ListPrepend(list, item);
     }
     /* if the current pointer is beyond the tail */
-    else {
+    else if (list->currFlag == 1){
       return ListAppend(list, item);
     }
-  }
-
-  /* Fail case 1: Current pointer is not set yet */
-  if (list->curr == NULL) {
-    return -1;
   }
 
   /* Try allocating space for new list node */
   ListNode* temp = list->curr;
   list->curr = allocateNode();
 
-  /* Fail case 2: No more free node in nodes pool */
+  /* Check if nodes are exhausted */
   if (list->curr == NULL) {
     return -1;
-  }
-
-  /* Success case 2 */
-  else {
+  } else {
     updateListNode(list->curr, item, temp->prev, temp);
 
-    /* If current pointer is at the head */
+    /* Check if current pointer is at the head */
     if (temp->prev != NULL) {
       temp->prev->next = list->curr;
     } else {
@@ -277,25 +267,21 @@ int ListInsert(LIST* list, void* item) {
  * @return 0 on success, -1 on failure
  */
 int ListAppend(LIST* list, void* item) {
+  assert(list != NULL && item != NULL);
+
   /* Try allocating space for new list node */
   list->curr = allocateNode();
 
-  /* Fail case: No more free nodes in nodes pool */
+  /* Check if nodes are exhausted */
   if (list->curr == NULL) {
     return -1;
-  }
-
-  /* Success case */
-  else {
-    /* If the list is empty */
+  } else {
+    /* Check if the list is empty */
     if (list->len == 0) {
       updateListNode(list->curr, item, NULL, NULL);
       updateList(list, list->len + 1, 0, list->curr, list->curr, list->curr);
       return 0;
-    }
-
-    /* If the list is not empty */
-    else {
+    } else {
       updateListNode(list->curr, item, list->tail, NULL);
       list->tail->next = list->curr;
       list->tail = list->curr;
@@ -312,25 +298,21 @@ int ListAppend(LIST* list, void* item) {
  * @return 0 on success, -1 on failure
  */
 int ListPrepend(LIST* list, void* item) {
+  assert(list != NULL && item != NULL);
+
   /* Try allocating space for new list node */
   list->curr = allocateNode();
 
-  /* Fail case: No more free nodes in nodes pool */
+  /* Check if nodes are exhausted */
   if (list->curr == NULL) {
     return -1;
-  }
-
-  /* Success case */
-  else {
-    /* If the list is empty */
+  } else {
+    /* Check if the list is empty */
     if (list->len == 0) {
       updateListNode(list->curr, item, NULL, NULL);
       updateList(list, list->len + 1, 0, list->curr, list->curr, list->curr);
       return 0;
-    }
-
-    /* If the list is not empty */
-    else {
+    } else {
       updateListNode(list->curr, item, NULL, list->head);
       list->head->prev = list->curr;
       list->head = list->curr;
@@ -346,6 +328,8 @@ int ListPrepend(LIST* list, void* item) {
  * @return current item of the list
  */
 void *ListRemove(LIST* list) {
+  assert(list != NULL);
+
   /* If current list pointer points out of the list */
   if (list->curr == NULL) {
     return NULL;
@@ -408,19 +392,16 @@ void ListConcat(LIST* list1, LIST* list2) {
  * @param itemFree a pointer to a routine that frees an item.
  */
 void ListFree(LIST* list, void *itemFree(LIST*)) {
-  if (list != NULL && itemFree != NULL) {
+  assert(list != NULL && itemFree != NULL);
 
-    /* 1. Free all nodes in the list */
-    ListFirst(list);
-    while(list->curr != NULL) {
-      (*itemFree)(list);
-    }
-
-    /* 2. Free the list */
-    freeList(list);
-  } else {
-    printf("Wrong inputs for ListFree()!\n");
+  /* 1. Free all nodes in the list */
+  ListFirst(list);
+  while(list->curr != NULL) {
+    (*itemFree)(list);
   }
+
+  /* 2. Free the list */
+  freeList(list);
 }
 
 /**
@@ -429,6 +410,7 @@ void ListFree(LIST* list, void *itemFree(LIST*)) {
  * @return last item item of the original list
  */
 void *ListTrim(LIST* list) {
+  assert(list != NULL);
   ListLast(list);
   return ListRemove(list);
 }
