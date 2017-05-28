@@ -179,7 +179,7 @@ int ListAdd(LIST* list, void* item) {
   assert(list != NULL && item != NULL);
   assert(list->curr != NULL || list->currFlag != 0);
 
-  /* Success case 1 */
+  /* If list is empty */
   if (list->curr == NULL) {
     /* if the current pointer is before the head */
     if (list->currFlag == -1) {
@@ -225,7 +225,7 @@ int ListInsert(LIST* list, void* item) {
   assert(list != NULL && item != NULL);
   assert(list->curr != NULL || list->currFlag != 0);
 
-  /* Success case 1 */
+  /* If list is empty */
   if (list->curr == NULL) {
     /* if the current pointer is before the head */
     if (list->currFlag == -1) {
