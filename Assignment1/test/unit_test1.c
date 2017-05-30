@@ -2,6 +2,12 @@
 #include "../include/list.h"
 #include <stdio.h>
 
+void freeItem(void* item) {
+  if (item != NULL) {
+    free(item);
+  }
+}
+
 /* unit_test1 focus on testing of ListCreate() */
 
 /* unit_test1_sub1: over allocation */
@@ -18,7 +24,7 @@ TEST(ListCreate, overAllocation) {
 
   // clean memory to make sure remaining test won't go wrong
   for (i = 0; i < headsPoolSize; i++) {
-    ListFree(list[i], ListRemove);
+    ListFree(list[i], freeItem);
   }
 }
 
@@ -30,7 +36,7 @@ TEST(ListCreate, allocatoinAndDeallocation) {
   // after loop, all heads in heads poll are still free
   for (i = 0; i < headsPoolSize; i++) {
     list[i] = ListCreate();
-    ListFree(list[i], ListRemove);
+    ListFree(list[i], freeItem);
   }
 
   // After loop, all heads in heads poll are exhausted
@@ -39,8 +45,8 @@ TEST(ListCreate, allocatoinAndDeallocation) {
   }
 
   // After free, two heads will be available
-  ListFree(list[2], ListRemove);
-  ListFree(list[5], ListRemove);
+  ListFree(list[2], freeItem);
+  ListFree(list[5], freeItem);
 
   // After creation, all heads are exhausted
   EXPECT_TRUE(ListCreate() != NULL);
@@ -49,7 +55,7 @@ TEST(ListCreate, allocatoinAndDeallocation) {
 
   // clean memory to make sure remaining test won't go wrong
   for (i = 0; i < headsPoolSize; i++) {
-    ListFree(list[i], ListRemove);
+    ListFree(list[i], freeItem);
   }
 }
 
@@ -64,6 +70,6 @@ TEST(ListCreate, overAllocation2) {
 
   // clean memory to make sure remaining test won't go wrong
   for (i = 0; i < headsPoolSize; i++) {
-    ListFree(list[i], ListRemove);
+    ListFree(list[i], freeItem);
   }
 }

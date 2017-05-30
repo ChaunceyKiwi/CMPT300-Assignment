@@ -2,6 +2,10 @@
 #include "../include/list.h"
 #include <stdio.h>
 
+int intEqualTo(LIST* list, void* comparisonArg) {
+  return *(int*)(list->curr->val) == *(int*)(comparisonArg);
+}
+
 // Test4: remove
 TEST(MaxSubArraySum, remove) {
 LIST *list = ListCreate();
