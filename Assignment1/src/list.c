@@ -243,15 +243,16 @@ int ListInsert(LIST* list, void* item) {
 
   /* Check if nodes are exhausted */
   if (list->curr == NULL) {
+    printf("Failure: All nodes are exhausted.\n");
     return -1;
   } else {
     updateListNode(list->curr, item, temp->prev, temp);
 
     /* Check if current pointer is at the head */
-    if (temp->prev != NULL) {
-      temp->prev->next = list->curr;
-    } else {
+    if (temp->prev == NULL) {
       list->head = list->curr;
+    } else {
+      temp->prev->next = list->curr;
     }
 
     temp->prev = list->curr;
@@ -269,25 +270,23 @@ int ListInsert(LIST* list, void* item) {
 int ListAppend(LIST* list, void* item) {
   assert(list != NULL && item != NULL);
 
-  /* Try allocating space for new list node */
-  list->curr = allocateNode();
+  /* Check if the list is empty */
+  if (list->tail == NULL) {
+    /* Try allocating space for new list node */
+    list->curr = allocateNode();
 
-  /* Check if nodes are exhausted */
-  if (list->curr == NULL) {
-    return -1;
-  } else {
-    /* Check if the list is empty */
-    if (list->len == 0) {
+    /* Check if nodes are exhausted */
+    if (list->curr == NULL) {
+      printf("Failure: All nodes are exhausted.\n");
+      return -1;
+    } else {
       updateListNode(list->curr, item, NULL, NULL);
       updateList(list, list->len + 1, 0, list->curr, list->curr, list->curr);
       return 0;
-    } else {
-      updateListNode(list->curr, item, list->tail, NULL);
-      list->tail->next = list->curr;
-      list->tail = list->curr;
-      list->len++;
-      return 0;
     }
+  } else {
+    ListLast(list);
+    return ListAdd(list, item);
   }
 }
 
@@ -300,25 +299,12 @@ int ListAppend(LIST* list, void* item) {
 int ListPrepend(LIST* list, void* item) {
   assert(list != NULL && item != NULL);
 
-  /* Try allocating space for new list node */
-  list->curr = allocateNode();
-
-  /* Check if nodes are exhausted */
-  if (list->curr == NULL) {
-    return -1;
+  /* Check if the list is empty */
+  if (list->head == NULL) {
+    return ListAppend(list, item);
   } else {
-    /* Check if the list is empty */
-    if (list->len == 0) {
-      updateListNode(list->curr, item, NULL, NULL);
-      updateList(list, list->len + 1, 0, list->curr, list->curr, list->curr);
-      return 0;
-    } else {
-      updateListNode(list->curr, item, NULL, list->head);
-      list->head->prev = list->curr;
-      list->head = list->curr;
-      list->len++;
-      return 0;
-    }
+    ListFirst(list);
+    return ListInsert(list, item);
   }
 }
 
@@ -337,7 +323,7 @@ void *ListRemove(LIST* list) {
     ListNode* temp = list->curr;
     void* item = temp->val;
 
-    /* Current list pointer points at the only node in the list */
+    /* If current node is the last node to remove */
     if (list->curr == list->head && list->curr == list->tail) {
       list->head = NULL;
       list->tail = NULL;
@@ -391,13 +377,14 @@ void ListConcat(LIST* list1, LIST* list2) {
  * @param list the list to be deleted
  * @param itemFree a pointer to a routine that frees an item.
  */
-void ListFree(LIST* list, void *itemFree(LIST*)) {
+void ListFree(LIST* list, void itemFree(void*)) {
   assert(list != NULL && itemFree != NULL);
 
   /* 1. Free all nodes in the list */
   ListFirst(list);
   while(list->curr != NULL) {
-    (*itemFree)(list);
+    itemFree(list->curr->val);
+    ListRemove(list);
   }
 
   /* 2. Free the list */
@@ -526,7 +513,6 @@ ListNode* allocateNode() {
   }
 }
 
-
 /**
  * Updates the value of members in a list node
  * @param listNode the list node to be updated
@@ -566,6 +552,15 @@ void ListPrint(LIST *list) {
   while(iter != NULL) {
     printf("%d ", *(int*)iter->val);
     iter = iter->next;
+  }
+  printf("\n");
+}
+
+void ListReversedPrint(LIST *list) {
+  ListNode* iter = list->tail;
+  while(iter != NULL) {
+    printf("%d ", *(int*)iter->val);
+    iter = iter->prev;
   }
   printf("\n");
 }

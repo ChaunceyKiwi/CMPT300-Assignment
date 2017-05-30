@@ -88,7 +88,7 @@ void *ListRemove(LIST *list);
 void ListConcat(LIST *list1, LIST *list2);
 
 /* Deletes list */
-void ListFree(LIST *list, void *itemFree(LIST *));
+void ListFree(LIST *list, void itemFree(void *));
 
 /* Returns last item and take it out of list. */
 void *ListTrim(LIST *list);
@@ -128,6 +128,7 @@ int intEqualTo(LIST *list, void *comparisonArg);
 *   Testing functions declaration
 */
 
-void ListPrint(LIST *list1);
+void ListPrint(LIST *list);
+void ListReversedPrint(LIST *list);
 
 #endif /* OS_ASS1_LIST_H_ */
