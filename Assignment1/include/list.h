@@ -119,12 +119,6 @@ void updateListNode(ListNode* listNode, void* item, ListNode* prev, ListNode* ne
 void freeNode(ListNode* listNode);
 
 /***********************************************************
-*   Comparator routine functions declaration
-*/
-
-int intEqualTo(LIST *list, void *comparisonArg);
-
-/***********************************************************
 *   Testing functions declaration
 */
 

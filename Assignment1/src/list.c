@@ -368,6 +368,7 @@ void ListConcat(LIST* list1, LIST* list2) {
   if (list1 != NULL && list2 != NULL) {
     list1->tail->next = list2->head;
     list2->head->prev = list1->tail;
+    list1->len += list2->len;
     freeList(list2);
   }
 }
@@ -430,14 +431,6 @@ void *ListSearch(LIST* list, int comparator(LIST*, void*), void* comparisonArg) 
   /* The current pointer is left beyond the end of the list */
   list->currFlag = 1;
   return NULL;
-}
-
-/***********************************************************
-*   Comparator routine functions declaration
-*/
-
-int intEqualTo(LIST* list, void* comparisonArg) {
-  return *(int*)(list->curr->val) == *(int*)(comparisonArg);
 }
 
 /***********************************************************
