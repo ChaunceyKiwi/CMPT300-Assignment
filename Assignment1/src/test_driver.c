@@ -150,6 +150,7 @@ int intLargerThan(LIST* list, void* comparisonArg) {
 }
 
 void freeItem(void* item) {
+  // *(int*)item = 0;
   if (item != NULL) {
     free(item);
   }

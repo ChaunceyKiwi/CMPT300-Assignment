@@ -107,7 +107,7 @@ LIST* allocateList();
 void updateList(LIST* list, int len, int currFlag, ListNode* head, ListNode* tail, ListNode* curr);
 
 /* Puts a list back to free list pool */
-void freeList(LIST* list);
+void freeListHead(LIST* list);
 
 /* Finds and returns a free list node */
 ListNode* allocateNode();

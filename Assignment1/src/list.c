@@ -369,7 +369,10 @@ void ListConcat(LIST* list1, LIST* list2) {
     list1->tail->next = list2->head;
     list2->head->prev = list1->tail;
     list1->len += list2->len;
-    freeList(list2);
+
+    /* Since all nodes in list2 is moved to list1, the nodes should not be freed */
+    /* Thus here we only need to free the list head and retain the nodes */
+    freeListHead(list2);
   }
 }
 
@@ -388,8 +391,8 @@ void ListFree(LIST* list, void itemFree(void*)) {
     ListRemove(list);
   }
 
-  /* 2. Free the list */
-  freeList(list);
+  /* 2. Reclaim the list head */
+  freeListHead(list);
 }
 
 /**
@@ -477,7 +480,7 @@ void updateList(LIST* list, int len, int currFlag, ListNode* head, ListNode* tai
  * Puts a list back to free list pool
  * @param list the list to be free
  */
-void freeList(LIST* list) {
+void freeListHead(LIST* list) {
   list->next = NULL;
 
   if (freeHeadList == NULL) {
