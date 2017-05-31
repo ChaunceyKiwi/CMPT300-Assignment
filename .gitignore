@@ -7,7 +7,3 @@ cmake-build-debug/
 .idea/
 
 CMakeLists.txt
-
-main.c
-
-test.c
