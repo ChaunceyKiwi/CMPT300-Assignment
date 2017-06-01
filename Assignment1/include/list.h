@@ -2,6 +2,9 @@
  *
  *  list.h
  *
+ *  This file contains the declarations of routine functions,
+ *  the definitions of structs and global variables
+ *
  *  Name         : Chauncey Liu
  *  Student ID   : 301295771
  *  SFU username : cla284
