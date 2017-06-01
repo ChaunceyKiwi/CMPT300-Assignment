@@ -202,6 +202,10 @@ int ListAdd(LIST* list, void* item) {
   /* Check if nodes are exhausted */
   if (list->curr == NULL) {
     printf("Failure: All nodes are exhausted.\n");
+
+    /* Since Add() fails, current pointer should not be set to the new item */
+    list->curr = temp;
+
     return -1;
   } else {
     updateListNode(list->curr, item, temp, temp->next);
@@ -248,6 +252,10 @@ int ListInsert(LIST* list, void* item) {
   /* Check if nodes are exhausted */
   if (list->curr == NULL) {
     printf("Failure: All nodes are exhausted.\n");
+
+    /* Since Insert() fails, current pointer should not be set to the new item */
+    list->curr = temp;
+
     return -1;
   } else {
     updateListNode(list->curr, item, temp->prev, temp);
