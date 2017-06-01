@@ -372,7 +372,7 @@ void ListConcat(LIST* list1, LIST* list2) {
   if (list1 != NULL && list2 != NULL) {
     list1->tail->next = list2->head;
     list2->head->prev = list1->tail;
-    list1->len += list2->len;
+    updateList(list1, list1->len + list2->len, 0, list1->head, list2->tail, list1->curr);
 
     /* Since all nodes in list2 is moved to list1, the nodes should not be freed */
     /* Thus here we only need to free the list head and retain the nodes */
