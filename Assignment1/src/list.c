@@ -27,11 +27,10 @@
 */
 
 LIST headsPool[headsPoolSize];      /* Statically pre-allocated array pool for heads */
-int freeHeadIndex = 0;              /* Used to indicate the first head in headsPool that has never been used before */
 LIST *freeHeadList = NULL;          /* Used to indicate the free heads that are recycled after removal */
 ListNode nodesPool[nodesPollSize];  /* Statically pre-allocated array pool for nodes */
-int freeNodeIndex = 0;              /* Used to indicate the first head in nodesPool that has never been used before */
 ListNode *freeNodeList = NULL;      /* Used to indicate the free nodes that are recycled after removal */
+int isPoolsSetUp = 0;               /* Pool is set up at the very first time that ListCreate() is called */
 
 /***********************************************************
 *   Routine functions implementation
@@ -43,6 +42,11 @@ ListNode *freeNodeList = NULL;      /* Used to indicate the free nodes that are 
  * @return Its reference on success. A NULL pointer on failure.
  */
 LIST *ListCreate() {
+  if (!isPoolsSetUp) {
+    setUpPools();
+    isPoolsSetUp = 1;
+  }
+
   LIST *list= allocateList();
 
   if (list != NULL) {
@@ -441,21 +445,43 @@ void *ListSearch(LIST* list, int comparator(LIST*, void*), void* comparisonArg) 
 */
 
 /**
+ * Sets up heads pool and nodes pool
+ */
+void setUpPools() {
+  int i;
+
+  /* Connect items in pools up */
+  for (i = 0; i < headsPoolSize - 1; i++) {
+    headsPool[i].next = &headsPool[i+1];
+  }
+  headsPool[i].next = NULL;
+
+  for (i = 0; i < nodesPollSize - 1; i++) {
+    nodesPool[i].next = &nodesPool[i+1];
+  }
+  nodesPool[i].next = NULL;
+
+  /* Set free list */
+  if (headsPoolSize > 0) {
+    freeHeadList = &headsPool[0];
+  }
+
+  if (nodesPollSize > 0) {
+    freeNodeList = &nodesPool[0];
+  }
+}
+
+/**
  * Finds and returns a free list
  * @return Returns its reference on success. Returns a NULL pointer on failure.
  */
 LIST* allocateList() {
-  /* If no recycled list available, try brand new list*/
-  if (freeHeadList == NULL) {
-    if (freeHeadIndex < headsPoolSize) {
-      return &headsPool[freeHeadIndex++];
-    } else {
-      return NULL; // No brand new list left
-    }
-  } else {
+  if (freeHeadList != NULL) {
     LIST *listFree = freeHeadList;
     freeHeadList = freeHeadList->next;
     return listFree;
+  } else {
+    return NULL;
   }
 }
 
@@ -497,16 +523,12 @@ void reclaimListHead(LIST* list) {
  * @return Returns its reference on success. Returns a NULL pointer on failure.
  */
 ListNode* allocateNode() {
-  if (freeNodeList == NULL) {
-    if (freeNodeIndex < nodesPollSize) {
-      return &nodesPool[freeNodeIndex++];
-    } else {
-      return NULL;
-    }
-  } else {
+  if (freeNodeList != NULL) {
     ListNode *nodeFree = freeNodeList;
     freeNodeList = freeNodeList->next;
     return nodeFree;
+  } else {
+    return NULL;
   }
 }
 

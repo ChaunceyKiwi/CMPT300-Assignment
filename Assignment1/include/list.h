@@ -103,6 +103,9 @@ void *ListSearch(LIST *list, int comparator(LIST *, void *), void *comparisonArg
 *   Helper functions declaration
 */
 
+/* Sets up heads pool and nodes pool */
+void setUpPools();
+
 /* Finds and returns a free list */
 LIST* allocateList();
 
