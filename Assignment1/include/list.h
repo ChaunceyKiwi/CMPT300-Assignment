@@ -107,7 +107,7 @@ LIST* allocateList();
 void updateList(LIST* list, int len, int currFlag, ListNode* head, ListNode* tail, ListNode* curr);
 
 /* Puts a list back to free list pool */
-void freeListHead(LIST* list);
+void reclaimListHead(LIST* list);
 
 /* Finds and returns a free list node */
 ListNode* allocateNode();
@@ -116,7 +116,7 @@ ListNode* allocateNode();
 void updateListNode(ListNode* listNode, void* item, ListNode* prev, ListNode* next);
 
 /* Puts a list node back to free list node pool */
-void freeNode(ListNode* listNode);
+void reclaimNode(ListNode* listNode);
 
 /***********************************************************
 *   Testing functions declaration
