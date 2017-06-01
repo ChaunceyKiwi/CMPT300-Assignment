@@ -99,14 +99,17 @@ int main(void)
   /* Testing on ListFirst(), ListLast(), ListPrev(), ListNext() */
   printf("\n3. Testing on ListFirst(), ListLast(), ListPrev(), ListNext()\n");
   printf("  [First and second items of list1: 1 5] vs \n");
-  printf("   First and second items of list1: %d %d\n", *(int*)ListFirst(list1), *(int*)ListNext(list1));
+  printf("   First and second items of list1: %d ", *(int*)ListFirst(list1));
+  printf("%d\n", *(int*)ListNext(list1));
   printf("  [Last and Next-to-last items of list2: 10 40] vs \n");
-  printf("   Last and Next-to-last items of list2: %d %d\n\n", *(int*)ListLast(list2), *(int*)ListPrev(list2));
+  printf("   Last and Next-to-last items of list2: %d ", *(int*)ListLast(list2));
+  printf("%d\n\n", *(int*)ListPrev(list2));
 
   /* Testing on ListCurr(), ListRemove() and ListTrim() */
   printf("4. Testing on ListCurr(), ListRemove() and ListTrim()\n");
   printf("  Current items of list1 and list2: 5 40 \n");
-  printf("  Current items of list1 and list2: %d %d\n", *(int*)ListCurr(list1), *(int*)ListCurr(list2));
+  printf("  Current items of list1 and list2: %d ", *(int*)ListCurr(list1));
+  printf("%d\n", *(int*)ListCurr(list2));
   printf("  Before ListRemove():\n");
   printf("    [List1 with length 5: 1 5 2 3 4] vs \n");
   printf("     List1 with length %d: ", ListCount(list1));
