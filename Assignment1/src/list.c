@@ -2,7 +2,7 @@
  *
  *  list.c
  *
- *  This file contain the routine functions to implement
+ *  This file contains the routine functions to implement
  *  the LIST abstract data type
  *
  *
@@ -482,6 +482,7 @@ void updateList(LIST* list, int len, int currFlag, ListNode* head, ListNode* tai
  */
 void reclaimListHead(LIST* list) {
   list->next = NULL;
+  updateList(list, 0, -1, NULL, NULL, NULL);
 
   if (freeHeadList == NULL) {
     freeHeadList = list;
