@@ -5,7 +5,6 @@
  *  This file contains the routine functions to implement
  *  the LIST abstract data type
  *
- *
  *  Name         : Chauncey Liu
  *  Student ID   : 301295771
  *  SFU username : cla284
@@ -36,7 +35,6 @@ int isPoolsSetUp = 0;               /* Pool is set up at the very first time tha
 *   Routine functions implementation
 */
 
-
 /**
  * Makes and returns a new, empty list
  * @return Its reference on success. A NULL pointer on failure.
@@ -47,10 +45,10 @@ LIST *ListCreate() {
     isPoolsSetUp = 1;
   }
 
-  LIST *list= allocateList();
+  LIST *list = allocateList();
 
   if (list != NULL) {
-    /* Initialize the current pointer before the header */
+    /* Initialize the current pointer before the head */
     updateList(list, 0, -1, NULL, NULL, NULL);
   } else {
     printf("Failure: All heads are exhausted.\n");
@@ -118,7 +116,7 @@ void *ListNext(LIST* list) {
   void *res = ListCurr(list);
 
   /* set flag when the current pointer goes beyond the tail */
-  if (res == NULL) {
+  if (list->curr == NULL) {
     list->currFlag = 1;
   }
 
@@ -152,7 +150,7 @@ void *ListPrev(LIST* list) {
   void *res = ListCurr(list);
 
   /* set flag when the current pointer goes before the head */
-  if (res == NULL) {
+  if (list->curr == NULL) {
     list->currFlag = -1;
   }
 
@@ -166,6 +164,7 @@ void *ListPrev(LIST* list) {
  */
 void *ListCurr(LIST* list) {
   assert(list != NULL);
+
   if (list->curr != NULL) {
     return list->curr->val;
   } else {
@@ -183,13 +182,12 @@ int ListAdd(LIST* list, void* item) {
   assert(list != NULL && item != NULL);
   assert(list->curr != NULL || list->currFlag != 0);
 
-  /* If list is empty */
   if (list->curr == NULL) {
-    /* if the current pointer is before the head */
+    /* If list is empty or the current pointer is before the head */
     if (list->currFlag == -1) {
       return ListPrepend(list, item);
     }
-    /* if the current pointer is beyond the tail */
+    /* If the current pointer is beyond the tail */
     else if (list->currFlag == 1){
       return ListAppend(list, item);
     }
@@ -201,11 +199,10 @@ int ListAdd(LIST* list, void* item) {
 
   /* Check if nodes are exhausted */
   if (list->curr == NULL) {
-    printf("Failure: All nodes are exhausted.\n");
-
     /* Since Add() fails, current pointer should not be set to the new item */
     list->curr = temp;
 
+    printf("Failure: All nodes are exhausted.\n");
     return -1;
   } else {
     updateListNode(list->curr, item, temp, temp->next);
@@ -233,9 +230,8 @@ int ListInsert(LIST* list, void* item) {
   assert(list != NULL && item != NULL);
   assert(list->curr != NULL || list->currFlag != 0);
 
-  /* If list is empty */
   if (list->curr == NULL) {
-    /* if the current pointer is before the head */
+    /* If list is empty or the current pointer is before the head */
     if (list->currFlag == -1) {
       return ListPrepend(list, item);
     }
@@ -251,11 +247,10 @@ int ListInsert(LIST* list, void* item) {
 
   /* Check if nodes are exhausted */
   if (list->curr == NULL) {
-    printf("Failure: All nodes are exhausted.\n");
-
     /* Since Insert() fails, current pointer should not be set to the new item */
     list->curr = temp;
 
+    printf("Failure: All nodes are exhausted.\n");
     return -1;
   } else {
     updateListNode(list->curr, item, temp->prev, temp);
@@ -335,7 +330,8 @@ void *ListRemove(LIST* list) {
     ListNode* temp = list->curr;
     void* item = temp->val;
 
-    /* If current node is the last node to remove */
+    /* If remove the single node in a list with only
+    one node, then the current pointer should be NULL */
     if (list->curr == list->head && list->curr == list->tail) {
       list->head = NULL;
       list->tail = NULL;
@@ -350,7 +346,8 @@ void *ListRemove(LIST* list) {
       list->curr = list->head;
     }
 
-    /* Current list pointer points at tail */
+    /* If remove the last item in the list, make the current
+     pointer point to the new last item in the list */
     else if (list->curr == list->tail) {
       temp->prev->next = NULL;
       list->tail = temp->prev;
@@ -365,6 +362,10 @@ void *ListRemove(LIST* list) {
     }
 
     list->len--;
+
+    /* ListRemove() returns the node to free pool, but the
+      item in the node will not be freed, if you want to free
+      the item, use the pointer returned by ListRemove() */
     reclaimNode(temp);
     return item;
   }
@@ -382,8 +383,8 @@ void ListConcat(LIST* list1, LIST* list2) {
     list2->head->prev = list1->tail;
     updateList(list1, list1->len + list2->len, 0, list1->head, list2->tail, list1->curr);
 
-    /* Since all nodes in list2 is moved to list1, the nodes should not be freed */
-    /* Thus here we only need to free the list head and retain the nodes */
+    /* Since all nodes in list2 is moved to list1, the nodes should not be freed.
+    Thus here we only need to free the list head and retain the nodes */
     reclaimListHead(list2);
   }
 }
@@ -396,14 +397,16 @@ void ListConcat(LIST* list1, LIST* list2) {
 void ListFree(LIST* list, void itemFree(void*)) {
   assert(list != NULL && itemFree != NULL);
 
-  /* 1. Free all nodes in the list */
   ListFirst(list);
   while(list->curr != NULL) {
+    /* For each node, call the itemfree function to free the item */
     itemFree(list->curr->val);
+
+    /* Once an item is freed the node is reclaimed */
     ListRemove(list);
   }
 
-  /* 2. Reclaim the list head */
+  /* Once all the nodes are reclaimed the list-head will also be reclaimed. */
   reclaimListHead(list);
 }
 
@@ -432,19 +435,12 @@ void *ListTrim(LIST* list) {
  */
 void *ListSearch(LIST* list, int comparator(LIST*, void*), void* comparisonArg) {
   while(list->curr != NULL) {
-    /* If item if found */
     if (comparator(list, comparisonArg) == 1) {
       return list->curr->val;
+    } else {
+      ListNext(list);
     }
-
-    /* If not found */
-    else {
-      list->curr = list->curr->next;
-    };
   }
-
-  /* The current pointer is left beyond the end of the list */
-  list->currFlag = 1;
   return NULL;
 }
 
@@ -453,7 +449,7 @@ void *ListSearch(LIST* list, int comparator(LIST*, void*), void* comparisonArg) 
 */
 
 /**
- * Sets up heads pool and nodes pool
+ * Initialization: Sets up heads pool and nodes pool
  */
 void setUpPools() {
   int i;
@@ -480,7 +476,7 @@ void setUpPools() {
 }
 
 /**
- * Finds and returns a free list
+ * Finds the next free list and returns
  * @return Returns its reference on success. Returns a NULL pointer on failure.
  */
 LIST* allocateList() {
@@ -558,9 +554,7 @@ void updateListNode(ListNode* listNode, void* item, ListNode* prev, ListNode* ne
  * @param the list node to be free
  */
 void reclaimNode(ListNode* listNode) {
-  listNode->prev = NULL;
-  listNode->val = NULL;
-  listNode->next = NULL;
+  updateListNode(listNode, NULL, NULL, NULL);
 
   if (freeNodeList == NULL) {
     freeNodeList = listNode;
@@ -579,15 +573,6 @@ void ListPrint(LIST *list) {
   while(iter != NULL) {
     printf("%d ", *(int*)iter->val);
     iter = iter->next;
-  }
-  printf("\n");
-}
-
-void ListReversedPrint(LIST *list) {
-  ListNode* iter = list->tail;
-  while(iter != NULL) {
-    printf("%d ", *(int*)iter->val);
-    iter = iter->prev;
   }
   printf("\n");
 }
