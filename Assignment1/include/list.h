@@ -23,8 +23,8 @@
 
 #include <stdio.h>
 
-#define headsPoolSize 20     /* The total number of heads available */
-#define nodesPollSize 1000   /* The total number of nodes available */
+#define headsPoolSize 10     /* The total number of heads available */
+#define nodesPollSize 100   /* The total number of nodes available */
 
 typedef struct ListNode_ {
   void *val;
@@ -129,6 +129,5 @@ void reclaimNode(ListNode* listNode);
 */
 
 void ListPrint(LIST *list);
-void ListReversedPrint(LIST *list);
 
 #endif /* OS_ASS1_LIST_H_ */
