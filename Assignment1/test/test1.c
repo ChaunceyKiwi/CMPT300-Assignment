@@ -2,32 +2,32 @@
 #include "../include/list.h"
 #include <stdio.h>
 
-int intEqualTo(LIST* list, void* comparisonArg) {
-  return *(int*)(list->curr->val) == *(int*)(comparisonArg);
+int intEqualTo(void* item, void* comparisonArg) {
+  return *(int*)(item) == *(int*)(comparisonArg);
 }
 
 // Test4: remove
 TEST(MaxSubArraySum, remove) {
 LIST *list = ListCreate();
-  
+
   int a = 5;
   ListAppend(list, &a);
-  
+
   int b = 6;
   ListAppend(list, &b);
-  
+
   int c = 7;
   ListAppend(list, &c);
-  
+
   int d = 8;
   ListAppend(list, &d);
-  
+
   ListFirst(list); // current pointer at head 5
 //  ListNext(list);  // current pointer at 6
 //  ListNext(list);  // current pointer at 7
 //  ListNext(list);  // current pointer at tail 8
 //  ListNext(list);  // current pointer beyond tail
-  
+
   EXPECT_EQ(a, *(int*)ListRemove(list));
   EXPECT_EQ(b, *(int*)ListFirst(list));
   EXPECT_EQ(c, *(int*)ListNext(list));

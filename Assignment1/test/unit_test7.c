@@ -4,16 +4,16 @@
 
 /* unit_test7 focus on testing of ListSearch() */
 
-int intEqualTo(LIST* list, void* comparisonArg) {
-  return *(int*)(list->curr->val) == *(int*)(comparisonArg);
+int intEqualTo(void* item, void* comparisonArg) {
+  return *(int*)(item) == *(int*)(comparisonArg);
 }
 
-int intLargerThan(LIST* list, void* comparisonArg) {
-  return *(int*)(list->curr->val) > *(int*)(comparisonArg);
+int intLargerThan(void* item, void* comparisonArg) {
+  return *(int*)(item) > *(int*)(comparisonArg);
 }
 
-int intSmallerThan(LIST* list, void* comparisonArg) {
-  return *(int*)(list->curr->val) < *(int*)(comparisonArg);
+int intSmallerThan(void* item, void* comparisonArg) {
+  return *(int*)(item) < *(int*)(comparisonArg);
 }
 
 TEST(ListSearch, searchFailBecaseOfNotExisting) {
