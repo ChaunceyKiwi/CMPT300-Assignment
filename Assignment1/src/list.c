@@ -377,16 +377,19 @@ void *ListRemove(LIST* list) {
  * @param list2 the list to concatenate
  */
 void ListConcat(LIST* list1, LIST* list2) {
-  /* Do concatenation only when both of the lists are not NULL */
-  if (list1 != NULL && list2 != NULL) {
+  assert(list1 != NULL && list2 != NULL);
+
+  if (ListCount(list1) == 0 && ListCount(list2) != 0) {
+    updateList(list1, list2->len, -1, list2->head, list2->tail, NULL);
+  } else if (ListCount(list1) != 0 && ListCount(list2) != 0) {
     list1->tail->next = list2->head;
     list2->head->prev = list1->tail;
     updateList(list1, list1->len + list2->len, 0, list1->head, list2->tail, list1->curr);
-
-    /* Since all nodes in list2 is moved to list1, the nodes should not be freed.
-    Thus here we only need to free the list head and retain the nodes */
-    reclaimListHead(list2);
   }
+
+  /* Since all nodes in list2 is moved to list1, the nodes should not be freed.
+  Thus here we only need to free the list head and retain the nodes */
+  reclaimListHead(list2);
 }
 
 /**
