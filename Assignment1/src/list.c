@@ -397,13 +397,13 @@ void ListConcat(LIST* list1, LIST* list2) {
  * @param list the list to be deleted
  * @param itemFree a pointer to a routine that frees an item.
  */
-void ListFree(LIST* list, void itemFree(void*)) {
+void ListFree(LIST* list, void (*itemFree)(void*)) {
   assert(list != NULL && itemFree != NULL);
 
   ListFirst(list);
   while(list->curr != NULL) {
     /* For each node, call the itemfree function to free the item */
-    itemFree(list->curr->val);
+    (*itemFree)(list->curr->val);
 
     /* Once an item is freed the node is reclaimed */
     ListRemove(list);
@@ -436,9 +436,9 @@ void *ListTrim(LIST* list) {
  * If no match isfound, the current pointer is left beyond
  * the end of the list and a NULL pointer is returned.
  */
-void *ListSearch(LIST* list, int comparator(LIST*, void*), void* comparisonArg) {
+void *ListSearch(LIST* list, int (*comparator)(void*, void*), void* comparisonArg) {
   while(list->curr != NULL) {
-    if (comparator(list, comparisonArg) == 1) {
+    if ((*comparator)(list->curr->val, comparisonArg) == 1) {
       return list->curr->val;
     } else {
       ListNext(list);

@@ -2,7 +2,7 @@
  *
  *  test.c
  *
- *  This file contains the testdriver to test all functions 
+ *  This file contains the testdriver to test all functions
  *  implemented in list.c
  *
  *  Name         : Chauncey Liu
@@ -27,8 +27,8 @@
 *   User defined functions declaration
 */
 
-int intEqualTo(LIST* list, void* comparisonArg);
-int intLargerThan(LIST* list, void* comparisonArg);
+int intEqualTo(void* item, void* comparisonArg);
+int intLargerThan(void* item, void* comparisonArg);
 void freeItem(void* item);
 
 int main(void)
@@ -195,12 +195,12 @@ int main(void)
 *   User defined functions implementation
 */
 
-int intEqualTo(LIST* list, void* comparisonArg) {
-  return *(int*)(list->curr->val) == *(int*)(comparisonArg);
+int intEqualTo(void* item, void* comparisonArg) {
+  return *(int*)(item) == *(int*)(comparisonArg);
 }
 
-int intLargerThan(LIST* list, void* comparisonArg) {
-  return *(int*)(list->curr->val) > *(int*)(comparisonArg);
+int intLargerThan(void* item, void* comparisonArg) {
+  return *(int*)(item) > *(int*)(comparisonArg);
 }
 
 void freeItem(void* item) {
@@ -209,4 +209,3 @@ void freeItem(void* item) {
     free(item);
   }
 }
-

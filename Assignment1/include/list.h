@@ -91,13 +91,13 @@ void *ListRemove(LIST *list);
 void ListConcat(LIST *list1, LIST *list2);
 
 /* Deletes list */
-void ListFree(LIST *list, void itemFree(void *));
+void ListFree(LIST *list, void (*itemFree)(void*));
 
 /* Returns last item and take it out of list. */
 void *ListTrim(LIST *list);
 
 /* Searches an item in the list */
-void *ListSearch(LIST *list, int comparator(LIST *, void *), void *comparisonArg);
+void *ListSearch(LIST *list, int (*comparator)(void*, void*), void* comparisonArg);
 
 /***********************************************************
 *   Helper functions declaration
