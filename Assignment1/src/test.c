@@ -158,7 +158,7 @@ int main(void)
   printf("     List1 with length %d: ", ListCount(list1));
   ListPrint(list1);
   printf("    [List2 with length 0] vs \n");
-  printf("     List2 with length %d", ListCount(list2));
+  printf("     List2 with length %d\n", ListCount(list2));
 
   /* Testing on ListSearch() */
   printf("\n6. Testing on ListSearch()\n");
@@ -185,6 +185,8 @@ int main(void)
 
   /* Testing on ListFree() */
   ListFree(list1, freeItem);
+
+  printf("\n\n-------------------------------Test Finished----------------------------------\n\n");
 
   return 0;
 }
