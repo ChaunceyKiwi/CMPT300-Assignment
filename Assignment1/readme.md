@@ -1,10 +1,10 @@
-# CMPT300 ASSIGNMENT1 
+# CMPT300 ASSIGNMENT1
 
 ## Getting Started
 ### Project Structure
-* **/inlcude**
-	* **/incude/list.h** 
-	
+* **/include**
+	* **/include/list.h**
+
 * **/src**
 	* **/src/list.c**
 	* **/src/test.c**
