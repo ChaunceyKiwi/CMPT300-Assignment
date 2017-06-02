@@ -514,15 +514,9 @@ void updateList(LIST* list, int len, int currFlag, ListNode* head, ListNode* tai
  * @param list the list to be free
  */
 void reclaimListHead(LIST* list) {
-  list->next = NULL;
   updateList(list, 0, -1, NULL, NULL, NULL);
-
-  if (freeHeadList == NULL) {
-    freeHeadList = list;
-  } else {
-    list->next = freeHeadList;
-    freeHeadList = list;
-  }
+  list->next = freeHeadList;
+  freeHeadList = list;
 }
 
 /**
@@ -558,13 +552,8 @@ void updateListNode(ListNode* listNode, void* item, ListNode* prev, ListNode* ne
  */
 void reclaimNode(ListNode* listNode) {
   updateListNode(listNode, NULL, NULL, NULL);
-
-  if (freeNodeList == NULL) {
-    freeNodeList = listNode;
-  } else {
-    listNode->next = freeNodeList;
-    freeNodeList = listNode;
-  }
+  listNode->next = freeNodeList;
+  freeNodeList = listNode;
 }
 
 /***********************************************************
