@@ -8,7 +8,7 @@ SRC_DIR = ../src
 CC = cc
 
 # The complier option
-CFLAG = -g -I$(HEADER_DIR)
+CFLAG = -Wall -g -I$(HEADER_DIR)
 
 # The name of final excutable file
 PROG = runTest
