@@ -6,6 +6,47 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <pthread.h>
+
+#define MESSAGE_LENGTH 30
+
+int status = 1; // 0 for closed, 1 for running
+int s;
+struct sockaddr_in addr;
+struct addrinfo hints, *res;
+
+void *sendMessage() {
+  while (status) {
+    char str[MESSAGE_LENGTH];
+    printf( "Enter a message: ");
+    scanf("%s",str); 
+    sendto(s, str, MESSAGE_LENGTH, 0, res->ai_addr, res->ai_addrlen);
+    if (str[0] == '!') {
+      status = 0;
+    }
+  }
+
+  close(s);
+  pthread_exit(NULL);
+}
+
+void *receiveMessage() {
+  struct sockaddr_storage their_addr;
+  socklen_t addr_len = sizeof their_addr;
+
+  while (status) {
+    char buf[MESSAGE_LENGTH];
+    int numbytes = recvfrom(s, &buf, MESSAGE_LENGTH, 0, (struct sockaddr *)&their_addr, &addr_len);
+    printf("listener: packet is %d bytes long\n", numbytes);
+    buf[numbytes] = '\0';
+    printf("listener: packet contains \"%s\"\n", buf);
+    if (buf[0] == '!') {
+      status = 0;
+    }
+  }
+  close(s);
+  pthread_exit(NULL);
+}
 
 int main(int argc, char *argv[])
 {
@@ -24,9 +65,8 @@ int main(int argc, char *argv[])
 
   /* AF_INET: Address family for IPv4 */
   /* SOCK_DGRAM: Supports datagrams (connectionless, unreliable messages of a fixed maximum length) */
-  int s = socket(AF_INET, SOCK_DGRAM, 0);
+  s = socket(AF_INET, SOCK_DGRAM, 0);
 
-  struct sockaddr_in addr;
   addr.sin_family = AF_INET;
   addr.sin_port = htons(my_port_number);
   addr.sin_addr.s_addr = INADDR_ANY; /* use the IP of the local machine */
@@ -42,7 +82,6 @@ int main(int argc, char *argv[])
   * Set send_socket
   */
   int infoRes;
-  struct addrinfo hints, *res;
   memset(&hints, 0, sizeof hints);
   hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_DGRAM;
@@ -56,18 +95,13 @@ int main(int argc, char *argv[])
   * Perform sending and receiving
   */  
 
-  char buf[30];
-  sendto(s, "Hello!", 30, 0, res->ai_addr, res->ai_addrlen);
-  
-  struct sockaddr_storage their_addr;
-  socklen_t addr_len = sizeof their_addr;
-  int numbytes = recvfrom(s, &buf, 30, 0, (struct sockaddr *)&their_addr, &addr_len);
+  pthread_t threads[2];
 
-  printf("listener: packet is %d bytes long\n", numbytes);
-  buf[numbytes] = '\0';
-  printf("listener: packet contains \"%s\"\n", buf);
+  pthread_create(&threads[0], NULL, sendMessage, NULL);
+  pthread_create(&threads[1], NULL, receiveMessage, NULL);
 
-  close(s);
+  pthread_join(threads[0], NULL); 
+  pthread_join(threads[1], NULL); 
 
   return 0;
 }
