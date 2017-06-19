@@ -21,7 +21,7 @@ run: $(OBJS)
 list.o: $(SRC_DIR)/list.c $(HEADER_DIR)/list.h
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/list.c
 
-s-talk.o: $(SRC_DIR)/s-talk.c $(HEADER_DIR)/list.h
+s-talk.o: $(SRC_DIR)/s-talk.c $(HEADER_DIR)/list.h $(HEADER_DIR)/s-talk.h
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/s-talk.c
 
 clean: 
