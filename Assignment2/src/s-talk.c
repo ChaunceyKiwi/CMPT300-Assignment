@@ -1,16 +1,26 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <pthread.h>
-#include "list.h"
+/*------------------------------------------------------
+ *
+ *  s-talk.c
+ *
+ *  This file contains the functions to implement
+ *  a chatting program that enables someone at one
+ *  terminal (or Xterm) to communicate with someone 
+ *  at another terminal.
+ *
+ *  Name         : Chauncey Liu
+ *  Student ID   : 301295771
+ *  SFU username : cla284
+ *  Course       : CMPT 300 Operating Systems I, Summer 2017
+ *  Instructor   : Harinder Khangura
+ *  TA           : Amineh Dadsetan
+ *
+ *  Created by Chauncey on 2017-06-19.
+ *  Copyright (c) 2017 Chauncey. All rights reserved.
+ *
+ *------------------------------------------------------
+ */
 
-#define MESSAGE_LENGTH 256
-#define BUFFER_MAX_SIZE 30
+#include "s-talk.h"
 
 int sendBufSize = 0;
 int recvBufSize = 0;
@@ -26,92 +36,6 @@ pthread_cond_t recvBuffNotFull = PTHREAD_COND_INITIALIZER;
 pthread_cond_t recvBuffNotEmpty = PTHREAD_COND_INITIALIZER;
 LIST *sendList;
 LIST *recvList;
-
-void *sendMessage() {
-  while (status) {
-    pthread_mutex_lock(&sendMutex);
-    while (sendBufSize == 0) {
-      pthread_cond_wait(&sendBuffNotEmpty, &sendMutex);
-    }
-    char *str = ListTrim(sendList); 
-    if (str[0] == '!') {
-      status = 0;
-    }
-    sendBufSize--;
-    sendto(s, str, MESSAGE_LENGTH, 0, res->ai_addr, res->ai_addrlen);
-
-    pthread_cond_signal(&sendBuffNotFull);
-    pthread_mutex_unlock(&sendMutex);
-  }
-
-  pthread_exit(NULL);
-}
-
-void *recvMessage() {
-  struct sockaddr_storage their_addr;
-  socklen_t addr_len = sizeof their_addr;
-
-  while (status) {
-    char buf[MESSAGE_LENGTH];
-    int numbytes = recvfrom(s, &buf, MESSAGE_LENGTH, 0, (struct sockaddr *)&their_addr, &addr_len);
-    buf[numbytes] = '\0';
-
-    pthread_mutex_lock(&recvMutex);
-    if (recvBufSize == BUFFER_MAX_SIZE) {
-      pthread_cond_wait(&recvBuffNotFull, &recvMutex);
-    }
-
-    ListAppend(recvList, buf);
-    recvBufSize++;
-
-    pthread_cond_signal(&recvBuffNotEmpty);
-    pthread_mutex_unlock(&recvMutex);
-
-    if (buf[0] == '!') {
-      status = 0;
-    }
-  }
-  pthread_exit(NULL);
-}
-
-void *inputMessage() {
-  while (status) {
-    char message[MESSAGE_LENGTH];
-    fgets(message, sizeof message, stdin);
-    pthread_mutex_lock(&sendMutex);
-    while (sendBufSize == BUFFER_MAX_SIZE) {
-      pthread_cond_wait(&sendBuffNotFull, &sendMutex);
-    }
-    ListAppend(sendList, message);
-    sendBufSize++;
-    pthread_cond_signal(&sendBuffNotEmpty);
-    pthread_mutex_unlock(&sendMutex);
-    if (message[0] == '!') {
-      status = 0;
-    }
-  }
-  pthread_exit(NULL);
-}
-
-void *outputMessage() {
-  while (status) {
-    pthread_mutex_lock(&recvMutex);
-    while (recvBufSize == 0) {
-      pthread_cond_wait(&recvBuffNotEmpty, &recvMutex);
-    }
-    char* message = ListTrim(recvList);
-    recvBufSize--;
-    pthread_cond_signal(&recvBuffNotFull);
-    pthread_mutex_unlock(&recvMutex);
-
-    if (message[0] == '!') {
-      status = 0;
-    }
-    printf("%s", message);
-  }
-
-  pthread_exit(NULL);
-}
 
 int main(int argc, char *argv[])
 {
@@ -166,20 +90,109 @@ int main(int argc, char *argv[])
   pthread_t threads[4];
 
   /* thread1 get input from keyboard */
-  pthread_create(&threads[0], NULL, inputMessage, NULL);
+  pthread_create(&threads[0], NULL, inputMsg, NULL);
 
   /* thread2 reveive UDP message */
-  pthread_create(&threads[1], NULL, recvMessage, NULL);
+  pthread_create(&threads[1], NULL, recvMsg, NULL);
 
   /* thread3 print message to the screen */
-  pthread_create(&threads[2], NULL, outputMessage, NULL);
+  pthread_create(&threads[2], NULL, outputMsg, NULL);
 
   /* thread4 send UDP message*/
-  pthread_create(&threads[3], NULL, sendMessage, NULL);
+  pthread_create(&threads[3], NULL, sendMsg, NULL);
 
   for (int i = 0; i < 4; i ++) {
     pthread_join(threads[i], NULL);
   }
 
   return 0;
+}
+
+void *sendMsg(UNUSED void* unused) {
+  while (status) {
+    pthread_mutex_lock(&sendMutex);
+    while (sendBufSize == 0) {
+      pthread_cond_wait(&sendBuffNotEmpty, &sendMutex);
+    }
+    char *msg = ListTrim(sendList); 
+    if (msg[0] == '!') {
+      status = 0;
+    }
+    sendBufSize--;
+    printf("Local: %s", msg);
+    sendto(s, msg, MSG_LEN, 0, res->ai_addr, res->ai_addrlen);
+
+    pthread_cond_signal(&sendBuffNotFull);
+    pthread_mutex_unlock(&sendMutex);
+  }
+
+  pthread_exit(NULL);
+}
+
+void *recvMsg(UNUSED void* unused) {
+  struct sockaddr_storage their_addr;
+  socklen_t addr_len = sizeof their_addr;
+
+  while (status) {
+    char buf[MSG_LEN];
+    ssize_t numbytes = recvfrom(s, &buf, MSG_LEN, 0, (struct sockaddr *)&their_addr, &addr_len);
+    buf[numbytes] = '\0';
+
+    pthread_mutex_lock(&recvMutex);
+    if (recvBufSize == BUFFER_MAX_SIZE) {
+      pthread_cond_wait(&recvBuffNotFull, &recvMutex);
+    }
+
+    ListAppend(recvList, buf);
+    recvBufSize++;
+
+    pthread_cond_signal(&recvBuffNotEmpty);
+    pthread_mutex_unlock(&recvMutex);
+
+    if (buf[0] == '!') {
+      status = 0;
+    }
+  }
+  pthread_exit(NULL);
+}
+
+void *inputMsg(UNUSED void* unused) {
+  while (status) {
+    char msg[MSG_LEN];
+    printf("Before fgets()\n");
+    fgets(msg, sizeof msg, stdin);
+    printf("After fgets()\n");
+    pthread_mutex_lock(&sendMutex);
+    while (sendBufSize == BUFFER_MAX_SIZE) {
+      pthread_cond_wait(&sendBuffNotFull, &sendMutex);
+    }
+    ListAppend(sendList, msg);
+    sendBufSize++;
+    pthread_cond_signal(&sendBuffNotEmpty);
+    pthread_mutex_unlock(&sendMutex);
+    if (msg[0] == '!') {
+      status = 0;
+    }
+  }
+  pthread_exit(NULL);
+}
+
+void *outputMsg(UNUSED void* unused) {
+  while (status) {
+    pthread_mutex_lock(&recvMutex);
+    while (recvBufSize == 0) {
+      pthread_cond_wait(&recvBuffNotEmpty, &recvMutex);
+    }
+    char* msg = ListTrim(recvList);
+    recvBufSize--;
+    pthread_cond_signal(&recvBuffNotFull);
+    pthread_mutex_unlock(&recvMutex);
+
+    if (msg[0] == '!') {
+      status = 0;
+    }
+    printf("Remote: %s", msg);
+  }
+
+  pthread_exit(NULL);
 }
