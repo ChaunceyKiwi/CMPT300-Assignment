@@ -40,9 +40,20 @@
 #define BUFFER_MAX_SIZE 30
 #define UNUSED __attribute__((unused))
 
-void *sendMsg(void*);
-void *recvMsg(void*);
-void *inputMsg(void*);
-void *outputMsg(void*);
+/* retrieves a message from sending buffer
+ * sends message to the remote client */
+void* sendMsg(void*);
+
+/* receives message from the remote client
+ * adds message to the receiving buffer */
+void* recvMsg(void*);
+
+/* gets input message from keyboard
+ * adds the message to the sending buffer */
+void* inputMsg(void*);
+
+/* retrieves a message from receiving buffer
+ * print the message to the screen */
+void* outputMsg(void*);
 
 #endif /* OS_ASS2_S_TALK_H_ */
