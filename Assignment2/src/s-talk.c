@@ -22,18 +22,18 @@
 
 #include "s-talk.h"
 
-int sendBufSize = 0;
-int recvBufSize = 0;
-int status = 1; // 0 for closed, 1 for running
 int s;
+int sendBufSize;
+int recvBufSize;
+int status;
 struct sockaddr_in addr;
 struct addrinfo hints, *res;
-pthread_mutex_t sendMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t recvMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t sendBuffNotFull = PTHREAD_COND_INITIALIZER;
-pthread_cond_t sendBuffNotEmpty = PTHREAD_COND_INITIALIZER;
-pthread_cond_t recvBuffNotFull = PTHREAD_COND_INITIALIZER;
-pthread_cond_t recvBuffNotEmpty = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t sendMutex;
+pthread_mutex_t recvMutex;
+pthread_cond_t sendBuffNotFull;
+pthread_cond_t sendBuffNotEmpty;
+pthread_cond_t recvBuffNotFull;
+pthread_cond_t recvBuffNotEmpty;
 LIST *sendList;
 LIST *recvList;
 
@@ -82,23 +82,33 @@ int main(int argc, char *argv[])
 
   /***********************************************************************
   * Perform sending and receiving
-  */ 
+  */
+
+  status = 1; // 0 for closed, 1 for running
+  sendBufSize = 0;
+  recvBufSize = 0;
+  sendMutex = PTHREAD_MUTEX_INITIALIZER;
+  recvMutex = PTHREAD_MUTEX_INITIALIZER;
+  sendBuffNotFull = PTHREAD_COND_INITIALIZER;
+  sendBuffNotEmpty = PTHREAD_COND_INITIALIZER;
+  recvBuffNotFull = PTHREAD_COND_INITIALIZER;
+  recvBuffNotEmpty = PTHREAD_COND_INITIALIZER;
 
   sendList = ListCreate();
   recvList = ListCreate(); 
 
   pthread_t threads[4];
 
-  /* thread1 get input from keyboard */
+  /* thread1 gets input from keyboard */
   pthread_create(&threads[0], NULL, inputMsg, NULL);
 
-  /* thread2 reveive UDP message */
+  /* thread2 reveives UDP message */
   pthread_create(&threads[1], NULL, recvMsg, NULL);
 
-  /* thread3 print message to the screen */
+  /* thread3 prints message to the screen */
   pthread_create(&threads[2], NULL, outputMsg, NULL);
 
-  /* thread4 send UDP message*/
+  /* thread4 sends UDP message*/
   pthread_create(&threads[3], NULL, sendMsg, NULL);
 
   for (int i = 0; i < 4; i ++) {
