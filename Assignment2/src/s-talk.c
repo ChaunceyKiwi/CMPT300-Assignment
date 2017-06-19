@@ -87,12 +87,12 @@ int main(int argc, char *argv[])
   status = 1; // 0 for closed, 1 for running
   sendBufSize = 0;
   recvBufSize = 0;
-  sendMutex = PTHREAD_MUTEX_INITIALIZER;
-  recvMutex = PTHREAD_MUTEX_INITIALIZER;
-  sendBuffNotFull = PTHREAD_COND_INITIALIZER;
-  sendBuffNotEmpty = PTHREAD_COND_INITIALIZER;
-  recvBuffNotFull = PTHREAD_COND_INITIALIZER;
-  recvBuffNotEmpty = PTHREAD_COND_INITIALIZER;
+  pthread_mutex_init(&sendMutex, NULL);
+  pthread_mutex_init(&recvMutex, NULL);
+  pthread_cond_init (&sendBuffNotFull, NULL);
+  pthread_cond_init (&sendBuffNotEmpty, NULL);
+  pthread_cond_init (&recvBuffNotFull, NULL);
+  pthread_cond_init (&recvBuffNotEmpty, NULL);
 
   sendList = ListCreate();
   recvList = ListCreate(); 
