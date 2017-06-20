@@ -4,7 +4,7 @@
  *
  *  This file contains the functions to implement
  *  a chatting program that enables someone at one
- *  terminal (or Xterm) to communicate with someone 
+ *  terminal (or Xterm) to communicate with someone
  *  at another terminal.
  *
  *  Name         : Chauncey Liu
@@ -24,6 +24,7 @@
 
 int s;                           /* file descriptor that refers to the endpoint for communication  */
 struct addrinfo *res;            /* stores information about address of the remote process */
+pthread_t threads[4];            /* four threads are reuiqred in this program */
 int status;                      /* keeping running all four threads while status is 1 */
 LIST *sendList;                  /* buffer list to store the messages not sent yet */
 LIST *recvList;                  /* buffer list to store the messages not printed yet */
@@ -95,8 +96,6 @@ int main(int argc, char *argv[])
   pthread_cond_init (&recvBuffNotFull, NULL);
   pthread_cond_init (&recvBuffNotEmpty, NULL);
 
-  pthread_t threads[4];
-
   /* thread1 is created to get input from keyboard */
   pthread_create(&threads[0], NULL, inputMsg, NULL);
 
@@ -128,26 +127,32 @@ int main(int argc, char *argv[])
  */
 void* inputMsg(UNUSED void* unused) {
   while (status) {
-    char msg[MSG_LEN];
-    fgets(msg, sizeof msg, stdin);
-    pthread_mutex_lock(&sendMutex);
+    char *msg = (char*) malloc(MSG_LEN * sizeof(char));
 
-    /* wait until the sending buffer is not full */
-    while (ListCount(sendList) == BUFFER_MAX_SIZE) {
-      pthread_cond_wait(&sendBuffNotFull, &sendMutex);
+    if (checkIfReady(0)) {
+      fgets(msg, sizeof(msg), stdin);
+
+      pthread_mutex_lock(&sendMutex);
+
+      /* wait until the sending buffer is not full */
+      while (ListCount(sendList) == BUFFER_MAX_SIZE) {
+        pthread_cond_wait(&sendBuffNotFull, &sendMutex);
+      }
+
+      ListPrepend(sendList, msg);
+      printf("%s appended to the list\n", msg);
+
+      /* resume suspended process if any */
+      pthread_cond_signal(&sendBuffNotEmpty);
+
+      pthread_mutex_unlock(&sendMutex);
+      if (msg[0] == '!' && msg[1] == '\n') {
+        status = 0;
+      }
     }
-
-    ListPrepend(sendList, msg);
-
-    /* resume suspended process if any */
-    pthread_cond_signal(&sendBuffNotEmpty);
-
-    pthread_mutex_unlock(&sendMutex);
-    /*if (msg[0] == '!') {
-      status = 0;
-    }*/
   }
 
+  printf("thread1 exit!\n");
   pthread_exit(NULL);
 }
 
@@ -166,28 +171,32 @@ void* recvMsg(UNUSED void* unused) {
   socklen_t addr_len = sizeof their_addr;
 
   while (status) {
-    char buf[MSG_LEN];
-    ssize_t numbytes = recvfrom(s, &buf, MSG_LEN, 0, (struct sockaddr *)&their_addr, &addr_len);
-    buf[numbytes] = '\0';
-    pthread_mutex_lock(&recvMutex);
+    char *msg = (char*) malloc(MSG_LEN * sizeof(char));
 
-    /* wait until the receiving buffer is not full */
-    if (ListCount(recvList) == BUFFER_MAX_SIZE) {
-      pthread_cond_wait(&recvBuffNotFull, &recvMutex);
+    if(checkIfReady(s)) {
+      ssize_t numbytes = recvfrom(s, msg, MSG_LEN, 0, (struct sockaddr *)&their_addr, &addr_len);
+      msg[numbytes - 1] = '\0';
+      pthread_mutex_lock(&recvMutex);
+
+      /* wait until the receiving buffer is not full */
+      if (ListCount(recvList) == BUFFER_MAX_SIZE) {
+        pthread_cond_wait(&recvBuffNotFull, &recvMutex);
+      }
+
+      ListPrepend(recvList, msg);
+
+      /* resume suspended process if any */
+      pthread_cond_signal(&recvBuffNotEmpty);
+
+      pthread_mutex_unlock(&recvMutex);
+
+      if (msg[0] == '!' && msg[1] == '\n') {
+        status = 0;
+      }
     }
-
-    ListPrepend(recvList, buf);
-
-    /* resume suspended process if any */
-    pthread_cond_signal(&recvBuffNotEmpty);
-
-    pthread_mutex_unlock(&recvMutex);
-
-    /*if (buf[0] == '!') {
-      status = 0;
-    }*/
   }
 
+  printf("thread2 exit!\n");
   pthread_exit(NULL);
 }
 
@@ -201,7 +210,7 @@ void* recvMsg(UNUSED void* unused) {
  * there was an implicit call to pthread_exit()
  */
 void* outputMsg(UNUSED void* unused) {
-  while (status) {
+  while (status || ListCount(recvList) != 0) {
     pthread_mutex_lock(&recvMutex);
 
     /* wait until the receiving buffer is not empty */
@@ -216,13 +225,18 @@ void* outputMsg(UNUSED void* unused) {
 
     pthread_mutex_unlock(&recvMutex);
 
-    /*if (msg[0] == '!') {
+    if (msg[0] == '!' && msg[1] == '\n') {
       status = 0;
-    }*/
-
-    printf("Remote: %s", msg);
+      printf("Session is terminated by remote request\n");
+      usleep(200);
+      pthread_cancel(threads[1]);
+      pthread_cancel(threads[2]);
+      continue;
+    }
+    printf("%s", msg);
   }
 
+  printf("thread3 exit!\n");
   pthread_exit(NULL);
 }
 
@@ -236,7 +250,7 @@ void* outputMsg(UNUSED void* unused) {
  * there was an implicit call to pthread_exit()
  */
 void* sendMsg(UNUSED void* unused) {
-  while (status) {
+  while (status || ListCount(sendList) != 0) {
     pthread_mutex_lock(&sendMutex);
 
     /* wait until the sending buffer is not empty */
@@ -246,17 +260,49 @@ void* sendMsg(UNUSED void* unused) {
 
     char *msg = ListTrim(sendList);
 
-    /*if (msg[0] == '!') {
-      status = 0;
-    }*/
-
     sendto(s, msg, MSG_LEN, 0, res->ai_addr, res->ai_addrlen);
 
     /* resume suspended process if any */
     pthread_cond_signal(&sendBuffNotFull);
 
     pthread_mutex_unlock(&sendMutex);
+
+    if (msg[0] == '!' || msg[1] == '\n') {
+      printf("Session is terminated by local request\n");
+      printf("status: %d, listCount: %d \n", status, ListCount(sendList));
+      usleep(200);
+      pthread_cancel(threads[2]);
+      pthread_cancel(threads[3]);
+      close(s);
+    }
   }
 
+  printf("thread4 exit!\n");
   pthread_exit(NULL);
+}
+
+int checkIfReady(int fds) {
+  fd_set rfds;
+  struct timeval tv;
+  int retval;
+
+  /* Watch stdin (fd 0) to see when it has input. */
+  FD_ZERO(&rfds);
+  FD_SET(0, &rfds);
+
+  /* Wait up to five seconds. */
+  tv.tv_sec = 0;
+  tv.tv_usec = 200;
+
+  retval = select(fds + 1, &rfds, NULL, NULL, &tv);
+  /* Don't rely on the value of tv now! */
+
+  if (retval == -1) {
+    perror("select()");
+    return 0;
+  } else if (retval) {
+    return 1;
+  } else {
+    return 0;
+  }
 }
