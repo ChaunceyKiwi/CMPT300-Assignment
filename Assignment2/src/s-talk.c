@@ -84,6 +84,12 @@ int main(int argc, char *argv[])
   * Perform chatting task
   */
 
+  initscr();
+  timeout(200);
+  // keypad(stdscr, TRUE);  /* enable keyboard mapping */
+  cbreak();
+  noecho();
+
   /* initialization */
   sendList = ListCreate();
   recvList = ListCreate();
@@ -127,25 +133,36 @@ int main(int argc, char *argv[])
  * there was an implicit call to pthread_exit()
  */
 void* inputMsg(UNUSED void* unused) {
+  char *message = (char*) malloc(MSG_LEN * sizeof(char));
+
   while (status) {
-    char msg[MSG_LEN];
-    fgets(msg, sizeof msg, stdin);
-    pthread_mutex_lock(&sendMutex);
+    char c = getch();
 
-    /* wait until the sending buffer is not full */
-    while (ListCount(sendList) == BUFFER_MAX_SIZE) {
-      pthread_cond_wait(&sendBuffNotFull, &sendMutex);
-    }
+    if ((int)c != -1) {
+      printw ("%c", c);
+      message[strlen(message)] = c;
 
-    ListPrepend(sendList, msg);
+      if (c == '\n') {
+        pthread_mutex_lock(&sendMutex);
 
-    /* resume suspended process if any */
-    pthread_cond_signal(&sendBuffNotEmpty);
+        /* wait until the sending buffer is not full */
+        while (ListCount(sendList) == BUFFER_MAX_SIZE) {
+          pthread_cond_wait(&sendBuffNotFull, &sendMutex);
+        }
 
-    pthread_mutex_unlock(&sendMutex);
-    /*if (msg[0] == '!') {
-      status = 0;
-    }*/
+        ListPrepend(sendList, message);
+
+        /* resume suspended process if any */
+        pthread_cond_signal(&sendBuffNotEmpty);
+
+        pthread_mutex_unlock(&sendMutex);
+        /*if (msg[0] == '!') {
+          status = 0;
+        }*/
+
+        message = (char*) malloc(MSG_LEN * sizeof(char));
+      }
+    } 
   }
 
   pthread_exit(NULL);
@@ -220,7 +237,7 @@ void* outputMsg(UNUSED void* unused) {
       status = 0;
     }*/
 
-    printf("Remote: %s", msg);
+    printw("Remote: %s", msg);
   }
 
   pthread_exit(NULL);
