@@ -57,6 +57,11 @@ int main(int argc, char *argv[])
   /* SOCK_DGRAM: Supports datagrams */
   s = socket(AF_INET, SOCK_DGRAM, 0);
 
+  struct timeval read_timeout;
+  read_timeout.tv_sec = 0;
+  read_timeout.tv_usec = 500;
+  setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
+
   addr.sin_family = AF_INET;
   addr.sin_port = htons(my_port_number);
   addr.sin_addr.s_addr = INADDR_ANY; /* use the IP of the local machine */
@@ -113,6 +118,19 @@ int main(int argc, char *argv[])
     pthread_join(threads[i], NULL);
   }
 
+  /* free all objects */
+  pthread_mutex_destroy(&sendMutex);
+  pthread_mutex_destroy(&recvMutex);
+  pthread_cond_destroy(&sendBuffNotFull);
+  pthread_cond_destroy(&sendBuffNotEmpty);
+  pthread_cond_destroy(&recvBuffNotFull);
+  pthread_cond_destroy(&recvBuffNotEmpty);
+
+  ListFree(sendList, freeItem);
+  ListFree(recvList, freeItem);
+
+  close(s);
+
   return 0;
 }
 
@@ -126,33 +144,37 @@ int main(int argc, char *argv[])
  * there was an implicit call to pthread_exit()
  */
 void* inputMsg(UNUSED void* unused) {
+  char *msg = (char*) malloc(MSG_LEN * sizeof(char));
+
   while (status) {
-    char *msg = (char*) malloc(MSG_LEN * sizeof(char));
+    char temp[MSG_LEN];
 
     if (checkIfReady(0)) {
-      fgets(msg, sizeof(msg), stdin);
+      fgets(temp, sizeof(temp), stdin);
+      strcat(msg, temp);
+      if (msg[strlen(msg)-1] == '\n') {
+        pthread_mutex_lock(&sendMutex);
 
-      pthread_mutex_lock(&sendMutex);
+        /* wait until the sending buffer is not full */
+        while (ListCount(sendList) == BUFFER_MAX_SIZE) {
+          pthread_cond_wait(&sendBuffNotFull, &sendMutex);
+        }
 
-      /* wait until the sending buffer is not full */
-      while (ListCount(sendList) == BUFFER_MAX_SIZE) {
-        pthread_cond_wait(&sendBuffNotFull, &sendMutex);
-      }
+        ListPrepend(sendList, msg);
 
-      ListPrepend(sendList, msg);
-      printf("%s appended to the list\n", msg);
+        /* resume suspended process if any */
+        pthread_cond_signal(&sendBuffNotEmpty);
 
-      /* resume suspended process if any */
-      pthread_cond_signal(&sendBuffNotEmpty);
+        pthread_mutex_unlock(&sendMutex);
+        if (msg[0] == '!' && msg[1] == '\n') {
+          status = 0;
+        }
 
-      pthread_mutex_unlock(&sendMutex);
-      if (msg[0] == '!' && msg[1] == '\n') {
-        status = 0;
+        msg = (char*) malloc(MSG_LEN * sizeof(char));
       }
     }
   }
 
-  printf("thread1 exit!\n");
   pthread_exit(NULL);
 }
 
@@ -169,13 +191,15 @@ void* inputMsg(UNUSED void* unused) {
 void* recvMsg(UNUSED void* unused) {
   struct sockaddr_storage their_addr;
   socklen_t addr_len = sizeof their_addr;
+  char *msg = (char*) malloc(MSG_LEN * sizeof(char));
 
   while (status) {
-    char *msg = (char*) malloc(MSG_LEN * sizeof(char));
-
-    if(checkIfReady(s)) {
-      ssize_t numbytes = recvfrom(s, msg, MSG_LEN, 0, (struct sockaddr *)&their_addr, &addr_len);
-      msg[numbytes - 1] = '\0';
+    char temp[MSG_LEN];
+    ssize_t numbytes = recvfrom(s, temp, MSG_LEN, 0, (struct sockaddr *)&their_addr, &addr_len);
+    if (numbytes != -1) {
+      strcat(msg, temp);
+    }
+    if (strlen(msg) > 0 && msg[strlen(msg)-1] == '\n') {
       pthread_mutex_lock(&recvMutex);
 
       /* wait until the receiving buffer is not full */
@@ -193,10 +217,10 @@ void* recvMsg(UNUSED void* unused) {
       if (msg[0] == '!' && msg[1] == '\n') {
         status = 0;
       }
+      msg = (char*) malloc(MSG_LEN * sizeof(char));
     }
   }
 
-  printf("thread2 exit!\n");
   pthread_exit(NULL);
 }
 
@@ -210,6 +234,7 @@ void* recvMsg(UNUSED void* unused) {
  * there was an implicit call to pthread_exit()
  */
 void* outputMsg(UNUSED void* unused) {
+  sleep(20);
   while (status || ListCount(recvList) != 0) {
     pthread_mutex_lock(&recvMutex);
 
@@ -229,14 +254,14 @@ void* outputMsg(UNUSED void* unused) {
       status = 0;
       printf("Session is terminated by remote request\n");
       usleep(200);
-      pthread_cancel(threads[1]);
-      pthread_cancel(threads[2]);
+      pthread_cancel(threads[0]);
+      pthread_cancel(threads[3]);
       continue;
     }
-    printf("%s", msg);
+    printf("Remote: %s", msg);
+    free(msg);
   }
 
-  printf("thread3 exit!\n");
   pthread_exit(NULL);
 }
 
@@ -259,7 +284,6 @@ void* sendMsg(UNUSED void* unused) {
     }
 
     char *msg = ListTrim(sendList);
-
     sendto(s, msg, MSG_LEN, 0, res->ai_addr, res->ai_addrlen);
 
     /* resume suspended process if any */
@@ -267,17 +291,17 @@ void* sendMsg(UNUSED void* unused) {
 
     pthread_mutex_unlock(&sendMutex);
 
-    if (msg[0] == '!' || msg[1] == '\n') {
+    if (msg[0] == '!' && msg[1] == '\n') {
       printf("Session is terminated by local request\n");
       printf("status: %d, listCount: %d \n", status, ListCount(sendList));
       usleep(200);
+      pthread_cancel(threads[1]);
       pthread_cancel(threads[2]);
-      pthread_cancel(threads[3]);
-      close(s);
     }
+
+    free(msg);
   }
 
-  printf("thread4 exit!\n");
   pthread_exit(NULL);
 }
 
@@ -304,5 +328,11 @@ int checkIfReady(int fds) {
     return 1;
   } else {
     return 0;
+  }
+}
+
+void freeItem(void* item) {
+  if (item != NULL) {
+    free(item);
   }
 }

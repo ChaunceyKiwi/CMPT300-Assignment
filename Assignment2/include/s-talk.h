@@ -60,4 +60,6 @@ void* outputMsg(void*);
 
 int checkIfReady(int fds);
 
+void freeItem(void* item);
+
 #endif /* OS_ASS2_S_TALK_H_ */
