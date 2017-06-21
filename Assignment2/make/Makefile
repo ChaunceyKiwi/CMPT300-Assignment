@@ -8,7 +8,7 @@ SRC_DIR = ../src
 CC = cc
 
 # The complier option
-CFLAGS = -Wall -g -I$(HEADER_DIR) -pthread -lncurses
+CFLAGS = -Wall -g -I$(HEADER_DIR) -pthread
 
 # The name of final excutable file
 PROG = s-talk
