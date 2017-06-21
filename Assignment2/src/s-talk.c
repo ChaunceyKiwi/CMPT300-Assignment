@@ -155,8 +155,6 @@ void* inputMsg(UNUSED void* unused) {
   timeout.tv_usec = 0;
 
   while (1) {
-    char temp[MSG_LEN];
-
     /* Initialize fd_set to watch stdin */
     FD_ZERO(&read_fd_set);
     FD_SET(0, &read_fd_set);
@@ -171,28 +169,25 @@ void* inputMsg(UNUSED void* unused) {
     } 
 
     else if (result) {
-      fgets(temp, sizeof(temp), stdin);
-      strcat(msg, temp);
-      if (msg[strlen(msg)-1] == '\n') {
-        pthread_mutex_lock(&sendMutex);
+      fgets(msg, MSG_LEN, stdin);  
+      pthread_mutex_lock(&sendMutex);
 
-        /* wait until the sending buffer is not full */
-        while (ListCount(sendList) == BUFFER_MAX_SIZE) {
-          pthread_cond_wait(&sendBuffNotFull, &sendMutex);
-        }
-
-        ListPrepend(sendList, msg);
-
-        /* resume suspended process if any */
-        pthread_cond_signal(&sendBuffNotEmpty);
-
-        pthread_mutex_unlock(&sendMutex);
-        if (msg[0] == '!' && msg[1] == '\n') {
-          break;
-        } 
-        
-        msg = (char*) malloc(MSG_LEN * sizeof(char));
+      /* wait until the sending buffer is not full */
+      while (ListCount(sendList) == BUFFER_MAX_SIZE) {
+        pthread_cond_wait(&sendBuffNotFull, &sendMutex);
       }
+
+      ListPrepend(sendList, msg);
+
+      /* resume suspended process if any */
+      pthread_cond_signal(&sendBuffNotEmpty);
+
+      pthread_mutex_unlock(&sendMutex);
+      if (msg[0] == '!' && msg[1] == '\n') {
+        break;
+      } 
+      
+      msg = (char*) malloc(MSG_LEN * sizeof(char));  
     }
 
     // do nothing if keyboard input is not available 
@@ -225,8 +220,6 @@ void* recvMsg(UNUSED void* unused) {
   timeout.tv_usec = 0;
 
   while (1) {
-    char temp[MSG_LEN];
-
     /* Initialize fd_set to watch stdin */
     FD_ZERO(&read_fd_set);
     FD_SET(s, &read_fd_set);
@@ -237,17 +230,13 @@ void* recvMsg(UNUSED void* unused) {
 
     if (result == -1) {
       perror("select()");
-    } 
+    }
 
     else if (result) {
-      ssize_t numbytes = recvfrom(s, temp, MSG_LEN, 0, (struct sockaddr *)&their_addr, &addr_len);
+      ssize_t numbytes = recvfrom(s, msg, MSG_LEN, 0, (struct sockaddr *)&their_addr, &addr_len);
   
       /* keep accumulating messages until it end with new line */
-      if (numbytes != -1) {
-        strcat(msg, temp);
-      }
-
-      if (strlen(msg) > 0 && msg[strlen(msg)-1] == '\n') {
+      if (numbytes > 0) {
         pthread_mutex_lock(&recvMutex);
 
         /* wait until the receiving buffer is not full */
