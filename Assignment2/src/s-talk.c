@@ -24,8 +24,7 @@
 
 int s;                           /* file descriptor that refers to the endpoint for communication  */
 struct addrinfo *res;            /* stores information about address of the remote process */
-pthread_t threads[4];            /* four threads are reuiqred in this program */
-int status;                      /* keeping running all four threads while status is 1 */
+pthread_t threads[4];            /* the pthreads environment will run four threads */
 LIST *sendList;                  /* buffer list to store the messages not sent yet */
 LIST *recvList;                  /* buffer list to store the messages not printed yet */
 pthread_mutex_t sendMutex;       /* mutex for modifying sendList */
@@ -57,16 +56,21 @@ int main(int argc, char *argv[])
   /* SOCK_DGRAM: Supports datagrams */
   s = socket(AF_INET, SOCK_DGRAM, 0);
 
-  struct timeval read_timeout;
-  read_timeout.tv_sec = 0;
-  read_timeout.tv_usec = 500;
-  setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
+  /* Make recvfrom() non-blcking*/
+  struct timeval timeout;
+  timeout.tv_sec = 0;
+  timeout.tv_usec = TIMEOUT * 1000;
+  if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout) == -1)  {
+    perror("setsockopt");
+    exit(1);
+  } 
 
   addr.sin_family = AF_INET;
   addr.sin_port = htons(my_port_number);
   addr.sin_addr.s_addr = INADDR_ANY; /* use the IP of the local machine */
   memset(&addr.sin_zero, '\0', 8);
 
+  // Associate the socket created with the local machine
   if (bind(s, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1) {
     close(s);
     fprintf(stderr, "listener: failed to bind socket\n");
@@ -93,7 +97,6 @@ int main(int argc, char *argv[])
   /* initialization */
   sendList = ListCreate();
   recvList = ListCreate();
-  status = 1; /* 0 for closed, 1 for running */
   pthread_mutex_init(&sendMutex, NULL);
   pthread_mutex_init(&recvMutex, NULL);
   pthread_cond_init (&sendBuffNotFull, NULL);
@@ -125,10 +128,8 @@ int main(int argc, char *argv[])
   pthread_cond_destroy(&sendBuffNotEmpty);
   pthread_cond_destroy(&recvBuffNotFull);
   pthread_cond_destroy(&recvBuffNotEmpty);
-
   ListFree(sendList, freeItem);
   ListFree(recvList, freeItem);
-
   close(s);
 
   return 0;
@@ -145,11 +146,29 @@ int main(int argc, char *argv[])
  */
 void* inputMsg(UNUSED void* unused) {
   char *msg = (char*) malloc(MSG_LEN * sizeof(char));
+  fd_set read_fd_set;
+  struct timeval timeout;
+  int result;
 
-  while (status) {
+  /* Set timeout as half second */
+  timeout.tv_sec = 0;
+  timeout.tv_usec = TIMEOUT * 1000;
+
+  while (1) {
     char temp[MSG_LEN];
 
-    if (checkIfReady(0)) {
+    /* Initialize fd_set to watch stdin */
+    FD_ZERO(&read_fd_set);
+    FD_SET(0, &read_fd_set);
+
+    // check if keyboard input is available
+    result = select(1, &read_fd_set, NULL, NULL, &timeout);
+
+    if (result == -1) {
+      perror("select()");
+    } 
+
+    else if (result) {
       fgets(temp, sizeof(temp), stdin);
       strcat(msg, temp);
       if (msg[strlen(msg)-1] == '\n') {
@@ -167,12 +186,15 @@ void* inputMsg(UNUSED void* unused) {
 
         pthread_mutex_unlock(&sendMutex);
         if (msg[0] == '!' && msg[1] == '\n') {
-          status = 0;
-        }
-
+          break;
+        } 
+        
         msg = (char*) malloc(MSG_LEN * sizeof(char));
       }
     }
+
+    // do nothing if keyboard input is not available 
+    else {} 
   }
 
   pthread_exit(NULL);
@@ -193,12 +215,15 @@ void* recvMsg(UNUSED void* unused) {
   socklen_t addr_len = sizeof their_addr;
   char *msg = (char*) malloc(MSG_LEN * sizeof(char));
 
-  while (status) {
+  while (1) {
     char temp[MSG_LEN];
     ssize_t numbytes = recvfrom(s, temp, MSG_LEN, 0, (struct sockaddr *)&their_addr, &addr_len);
+    
+    /* keep accumulating messages until it end with new line */
     if (numbytes != -1) {
       strcat(msg, temp);
     }
+
     if (strlen(msg) > 0 && msg[strlen(msg)-1] == '\n') {
       pthread_mutex_lock(&recvMutex);
 
@@ -215,8 +240,9 @@ void* recvMsg(UNUSED void* unused) {
       pthread_mutex_unlock(&recvMutex);
 
       if (msg[0] == '!' && msg[1] == '\n') {
-        status = 0;
-      }
+        break;
+      } 
+      
       msg = (char*) malloc(MSG_LEN * sizeof(char));
     }
   }
@@ -234,7 +260,7 @@ void* recvMsg(UNUSED void* unused) {
  * there was an implicit call to pthread_exit()
  */
 void* outputMsg(UNUSED void* unused) {
-  while (status || ListCount(recvList) != 0) {
+  while (1) {
     pthread_mutex_lock(&recvMutex);
 
     /* wait until the receiving buffer is not empty */
@@ -250,12 +276,12 @@ void* outputMsg(UNUSED void* unused) {
     pthread_mutex_unlock(&recvMutex);
 
     if (msg[0] == '!' && msg[1] == '\n') {
-      status = 0;
       printf("Session is terminated by remote request\n");
-      usleep(200);
+      usleep(TIMEOUT);
       pthread_cancel(threads[0]);
       pthread_cancel(threads[3]);
-      continue;
+      free(msg);
+      break;
     }
     printf("Remote: %s", msg);
     free(msg);
@@ -274,7 +300,7 @@ void* outputMsg(UNUSED void* unused) {
  * there was an implicit call to pthread_exit()
  */
 void* sendMsg(UNUSED void* unused) {
-  while (status || ListCount(sendList) != 0) {
+  while (1) {
     pthread_mutex_lock(&sendMutex);
 
     /* wait until the sending buffer is not empty */
@@ -292,41 +318,17 @@ void* sendMsg(UNUSED void* unused) {
 
     if (msg[0] == '!' && msg[1] == '\n') {
       printf("Session is terminated by local request\n");
-      usleep(200);
+      usleep(TIMEOUT);
       pthread_cancel(threads[1]);
       pthread_cancel(threads[2]);
+      free(msg);
+      break;
     }
 
     free(msg);
   }
 
   pthread_exit(NULL);
-}
-
-int checkIfReady(int fds) {
-  fd_set rfds;
-  struct timeval tv;
-  int retval;
-
-  /* Watch stdin (fd 0) to see when it has input. */
-  FD_ZERO(&rfds);
-  FD_SET(0, &rfds);
-
-  /* Wait up to five seconds. */
-  tv.tv_sec = 0;
-  tv.tv_usec = 200;
-
-  retval = select(fds + 1, &rfds, NULL, NULL, &tv);
-  /* Don't rely on the value of tv now! */
-
-  if (retval == -1) {
-    perror("select()");
-    return 0;
-  } else if (retval) {
-    return 1;
-  } else {
-    return 0;
-  }
 }
 
 void freeItem(void* item) {

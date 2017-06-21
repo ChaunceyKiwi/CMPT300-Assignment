@@ -40,6 +40,7 @@
 
 #define MSG_LEN 256
 #define BUFFER_MAX_SIZE 30
+#define TIMEOUT 500 /* microsecond */
 #define UNUSED __attribute__((unused))
 
 /* retrieves a message from sending buffer
@@ -58,8 +59,7 @@ void* inputMsg(void*);
  * print the message to the screen */
 void* outputMsg(void*);
 
-int checkIfReady(int fds);
-
+/* function used to free an item */
 void freeItem(void* item);
 
 #endif /* OS_ASS2_S_TALK_H_ */
