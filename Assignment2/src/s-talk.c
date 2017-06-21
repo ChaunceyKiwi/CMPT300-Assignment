@@ -234,7 +234,6 @@ void* recvMsg(UNUSED void* unused) {
  * there was an implicit call to pthread_exit()
  */
 void* outputMsg(UNUSED void* unused) {
-  sleep(20);
   while (status || ListCount(recvList) != 0) {
     pthread_mutex_lock(&recvMutex);
 
@@ -293,7 +292,6 @@ void* sendMsg(UNUSED void* unused) {
 
     if (msg[0] == '!' && msg[1] == '\n') {
       printf("Session is terminated by local request\n");
-      printf("status: %d, listCount: %d \n", status, ListCount(sendList));
       usleep(200);
       pthread_cancel(threads[1]);
       pthread_cancel(threads[2]);
