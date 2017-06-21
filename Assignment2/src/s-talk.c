@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
   /* Make recvfrom() non-blcking*/
   struct timeval timeout;
   timeout.tv_sec = 0;
-  timeout.tv_usec = TIMEOUT * 1000;
+  timeout.tv_usec = 0;
   if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout) == -1)  {
     perror("setsockopt");
     exit(1);
@@ -150,9 +150,9 @@ void* inputMsg(UNUSED void* unused) {
   struct timeval timeout;
   int result;
 
-  /* Set timeout as half second */
+  /* Non-blocking reading */
   timeout.tv_sec = 0;
-  timeout.tv_usec = TIMEOUT * 1000;
+  timeout.tv_usec = 0;
 
   while (1) {
     char temp[MSG_LEN];
@@ -163,6 +163,8 @@ void* inputMsg(UNUSED void* unused) {
 
     // check if keyboard input is available
     result = select(1, &read_fd_set, NULL, NULL, &timeout);
+
+    usleep(WAITING_INTERVAL);
 
     if (result == -1) {
       perror("select()");
@@ -214,37 +216,61 @@ void* recvMsg(UNUSED void* unused) {
   struct sockaddr_storage their_addr;
   socklen_t addr_len = sizeof their_addr;
   char *msg = (char*) malloc(MSG_LEN * sizeof(char));
+  fd_set read_fd_set;
+  struct timeval timeout;
+  int result;
+
+  /* Non-blocking reading */
+  timeout.tv_sec = 0;
+  timeout.tv_usec = 0;
 
   while (1) {
     char temp[MSG_LEN];
-    ssize_t numbytes = recvfrom(s, temp, MSG_LEN, 0, (struct sockaddr *)&their_addr, &addr_len);
-    
-    /* keep accumulating messages until it end with new line */
-    if (numbytes != -1) {
-      strcat(msg, temp);
-    }
 
-    if (strlen(msg) > 0 && msg[strlen(msg)-1] == '\n') {
-      pthread_mutex_lock(&recvMutex);
+    /* Initialize fd_set to watch stdin */
+    FD_ZERO(&read_fd_set);
+    FD_SET(s, &read_fd_set);
 
-      /* wait until the receiving buffer is not full */
-      if (ListCount(recvList) == BUFFER_MAX_SIZE) {
-        pthread_cond_wait(&recvBuffNotFull, &recvMutex);
+    // check if message from remote process is available
+    result = select(s+1, &read_fd_set, NULL, NULL, &timeout);
+    usleep(WAITING_INTERVAL);
+
+    if (result == -1) {
+      perror("select()");
+    } 
+
+    else if (result) {
+      ssize_t numbytes = recvfrom(s, temp, MSG_LEN, 0, (struct sockaddr *)&their_addr, &addr_len);
+  
+      /* keep accumulating messages until it end with new line */
+      if (numbytes != -1) {
+        strcat(msg, temp);
       }
 
-      ListPrepend(recvList, msg);
+      if (strlen(msg) > 0 && msg[strlen(msg)-1] == '\n') {
+        pthread_mutex_lock(&recvMutex);
 
-      /* resume suspended process if any */
-      pthread_cond_signal(&recvBuffNotEmpty);
+        /* wait until the receiving buffer is not full */
+        if (ListCount(recvList) == BUFFER_MAX_SIZE) {
+          pthread_cond_wait(&recvBuffNotFull, &recvMutex);
+        }
 
-      pthread_mutex_unlock(&recvMutex);
+        ListPrepend(recvList, msg);
 
-      if (msg[0] == '!' && msg[1] == '\n') {
-        break;
-      } 
-      
-      msg = (char*) malloc(MSG_LEN * sizeof(char));
-    }
+        /* resume suspended process if any */
+        pthread_cond_signal(&recvBuffNotEmpty);
+
+        pthread_mutex_unlock(&recvMutex);
+
+        if (msg[0] == '!' && msg[1] == '\n') {
+          break;
+        } 
+        
+        msg = (char*) malloc(MSG_LEN * sizeof(char));
+      }
+    } 
+    // do nothing if no message is available 
+    else {}
   }
 
   pthread_exit(NULL);
@@ -277,7 +303,7 @@ void* outputMsg(UNUSED void* unused) {
 
     if (msg[0] == '!' && msg[1] == '\n') {
       printf("Session is terminated by remote request\n");
-      usleep(TIMEOUT);
+      usleep(WAITING_INTERVAL);
       pthread_cancel(threads[0]);
       pthread_cancel(threads[3]);
       free(msg);
@@ -318,7 +344,7 @@ void* sendMsg(UNUSED void* unused) {
 
     if (msg[0] == '!' && msg[1] == '\n') {
       printf("Session is terminated by local request\n");
-      usleep(TIMEOUT);
+      usleep(WAITING_INTERVAL);
       pthread_cancel(threads[1]);
       pthread_cancel(threads[2]);
       free(msg);

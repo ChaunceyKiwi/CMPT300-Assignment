@@ -40,7 +40,7 @@
 
 #define MSG_LEN 256
 #define BUFFER_MAX_SIZE 30
-#define TIMEOUT 500 /* microsecond */
+#define WAITING_INTERVAL 100000 /* microsecond */
 #define UNUSED __attribute__((unused))
 
 /* retrieves a message from sending buffer
