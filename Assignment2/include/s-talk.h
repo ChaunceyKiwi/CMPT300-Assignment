@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/time.h>
+#include <sys/types.h>
 
 #include <netinet/in.h>
 #include <sys/types.h>
@@ -55,5 +57,9 @@ void* inputMsg(void*);
 /* retrieves a message from receiving buffer
  * print the message to the screen */
 void* outputMsg(void*);
+
+int checkIfReady(int fds);
+
+void freeItem(void* item);
 
 #endif /* OS_ASS2_S_TALK_H_ */
