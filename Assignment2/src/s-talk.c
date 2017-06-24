@@ -133,8 +133,6 @@ int main(int argc, char *argv[])
   ListFree(sendList, freeItem);
   ListFree(recvList, freeItem);
   pthread_exit(NULL);
-
-  return 0;
 }
 
 
