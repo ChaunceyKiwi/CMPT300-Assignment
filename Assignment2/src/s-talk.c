@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
   /* SOCK_DGRAM: Supports datagrams */
   s = socket(AF_INET, SOCK_DGRAM, 0);
 
-  /* Make recvfrom() non-blcking*/
+  /* Make recvfrom() non-blcking */
   struct timeval timeout;
   timeout.tv_sec = 0;
   timeout.tv_usec = 0;
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
   addr.sin_addr.s_addr = INADDR_ANY; /* use the IP of the local machine */
   memset(&addr.sin_zero, '\0', 8);
 
-  // Associate the socket created with the local machine
+  /* Associate the socket with the local machine */
   if (bind(s, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1) {
     close(s);
     fprintf(stderr, "listener: failed to bind socket\n");
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
   };
 
   /***********************************************************************
-  * Get remote address
+  * Get remote address by remote host name
   */
 
   int infoRes;
@@ -86,6 +86,7 @@ int main(int argc, char *argv[])
   hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_DGRAM;
   if ((infoRes = getaddrinfo(remote_machine_name, remote_port_number, &hints, &res)) != 0) {
+    close(s);
     fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(infoRes));
     return 1;
   }
@@ -121,16 +122,17 @@ int main(int argc, char *argv[])
     pthread_join(threads[i], NULL);
   }
 
-  /* free all objects */
+  /* clean up and exit */
   pthread_mutex_destroy(&sendMutex);
   pthread_mutex_destroy(&recvMutex);
   pthread_cond_destroy(&sendBuffNotFull);
   pthread_cond_destroy(&sendBuffNotEmpty);
   pthread_cond_destroy(&recvBuffNotFull);
   pthread_cond_destroy(&recvBuffNotEmpty);
+  close(s);
   ListFree(sendList, freeItem);
   ListFree(recvList, freeItem);
-  close(s);
+  pthread_exit(NULL);
 
   return 0;
 }
@@ -145,21 +147,22 @@ int main(int argc, char *argv[])
  * there was an implicit call to pthread_exit()
  */
 void* inputMsg(UNUSED void* unused) {
-  char *msg = (char*) malloc(MSG_LEN * sizeof(char));
   fd_set read_fd_set;
-  struct timeval timeout;
   int result;
 
   /* Non-blocking reading */
+  struct timeval timeout;
   timeout.tv_sec = 0;
   timeout.tv_usec = 0;
+
+  char *msg = (char*) malloc(MSG_LEN * sizeof(char));
 
   while (1) {
     /* Initialize fd_set to watch stdin */
     FD_ZERO(&read_fd_set);
     FD_SET(0, &read_fd_set);
 
-    // check if keyboard input is available
+    /* check if keyboard input is available */
     result = select(1, &read_fd_set, NULL, NULL, &timeout);
 
     usleep(WAITING_INTERVAL);
@@ -185,12 +188,12 @@ void* inputMsg(UNUSED void* unused) {
       pthread_mutex_unlock(&sendMutex);
       if (msg[0] == '!' && msg[1] == '\n') {
         break;
-      } 
+      }
       
       msg = (char*) malloc(MSG_LEN * sizeof(char));  
     }
 
-    // do nothing if keyboard input is not available 
+    /* do nothing if keyboard input is not available */
     else {} 
   }
 
@@ -208,23 +211,24 @@ void* inputMsg(UNUSED void* unused) {
  */
 
 void* recvMsg(UNUSED void* unused) {
-  struct sockaddr_storage their_addr;
-  socklen_t addr_len = sizeof their_addr;
-  char *msg = (char*) malloc(MSG_LEN * sizeof(char));
   fd_set read_fd_set;
-  struct timeval timeout;
   int result;
 
   /* Non-blocking reading */
+  struct timeval timeout;
   timeout.tv_sec = 0;
   timeout.tv_usec = 0;
+
+  char *msg = (char*) malloc(MSG_LEN * sizeof(char));
+  struct sockaddr_storage their_addr;
+  socklen_t addr_len = sizeof their_addr;
 
   while (1) {
     /* Initialize fd_set to watch stdin */
     FD_ZERO(&read_fd_set);
     FD_SET(s, &read_fd_set);
 
-    // check if message from remote process is available
+    /* check if any message available from remote process */
     result = select(s+1, &read_fd_set, NULL, NULL, &timeout);
     usleep(WAITING_INTERVAL);
 
@@ -258,7 +262,7 @@ void* recvMsg(UNUSED void* unused) {
         msg = (char*) malloc(MSG_LEN * sizeof(char));
       }
     } 
-    // do nothing if no message is available 
+    /* do nothing if no message is available */
     else {}
   }
 
