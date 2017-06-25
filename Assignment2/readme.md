@@ -13,7 +13,7 @@
 * **/make**
 	* **/make/Makefile**
 
-### How to run test driver
+### How to run the program
 To run the prgram in /src/s-talk.c, take following steps:
 
 ```
