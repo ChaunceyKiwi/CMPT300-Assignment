@@ -20,3 +20,6 @@ To run the prgram in /src/s-talk.c, take following steps:
 cd make; make;
 ./s-talk [my port number] [remote machine name] [remote port number];
 ```
+
+### How to exit
+The s-talk session will be terminated when '!' is typed by either user.
