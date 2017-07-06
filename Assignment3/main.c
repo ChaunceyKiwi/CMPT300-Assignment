@@ -7,7 +7,7 @@ int create(int priority) {
 
 /* Copy current runnning process and put it on the ready Q
  * corresponding to the original process' priority. Attempting
- * to Fork the "init" process shoould fail */
+ * to Fork the "init" process should fail */
 int fork() {
   return 0;
 }
@@ -42,7 +42,7 @@ int reply(int pid, char * msg) {
 /* Initialize the named semaphore with the value given ID's
  * can take a value from 0 to 4. This can only be done once
  * for a semaphore - subsequent attempts result in error */
-int newSemaphor(int semID, int initVal) {
+int newSemaphore(int semID, int initVal) {
   return 0;
 }
 
