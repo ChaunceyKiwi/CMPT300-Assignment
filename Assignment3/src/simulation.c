@@ -36,6 +36,47 @@ int main(void)
   /* add 'init' process to queue */
   create(3);
 
+  int priority;
+  int pid;
+
+  while(1) {
+    char op = getchar();
+    switch (op) {
+      case 'C':
+        scanf("%d", &priority);
+        create(priority);
+        break;
+      case 'F':
+        fork();
+        break;
+      case 'K':
+        scanf("%u", &pid);
+        killProc(pid);
+        break;
+      case 'E':
+        exitProc();
+        break;
+      case 'Q':
+        quantum();
+        break;
+      case 'S': break;
+      case 'R': break;
+      case 'Y': break;
+      case 'N': break;
+      case 'P': break;
+      case 'V': break;
+      case 'I':
+        scanf("%u", &pid);
+        procinfo(pid);
+        break;
+      case 'T':
+        totalInfo();
+        break;
+      case '!':
+        return 0;
+    }
+  }
+
   return 0;
 }
 
@@ -43,7 +84,9 @@ int main(void)
 int create(int priority) {
   PCB* pcbPtr = createPCB(priority);
   ListPrepend(readyQueues[priority], (void*)pcbPtr);
-  printf("Process is successfully created, the pid is %u\n", pcbPtr->pid);
+  if (pcbPtr->pid != 0) {
+    printf("Process is successfully created, the pid is %u\n", pcbPtr->pid);
+  }
   return 0;
 }
 
@@ -53,7 +96,8 @@ int create(int priority) {
 int fork() {
   PCB* newProc = copyPCB(currProc);
   ListPrepend(readyQueues[newProc->priority], (void*)newProc);
-  printf("Process is successfully forked, the pid is %u\n", newProc->pid);
+  printf("Process with pid %u is successfully forked, the pid of resulting process is %u\n",
+   currProc->pid, newProc->pid);
   return 0;
 }
 
