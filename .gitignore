@@ -9,3 +9,5 @@ cmake-build-debug/
 .idea/
 
 CMakeLists.txt
+
+Assignment3/make/simulation

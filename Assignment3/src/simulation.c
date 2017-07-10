@@ -89,6 +89,20 @@ int exitProc() {
 
 /* time quantum of running process expires */
 void quantum() {
+  if (ListCount(readyQueues[0]) != 0) {
+    currProc = (PCB*)ListTrim(readyQueues[0]);
+    ListPrepend(readyQueues[0], currProc);
+  } else if (ListCount(readyQueues[1]) != 0) {
+    currProc = (PCB*)ListTrim(readyQueues[1]);
+    ListPrepend(readyQueues[1], currProc);
+  } else if (ListCount(readyQueues[2]) != 0) {
+    currProc = (PCB*)ListTrim(readyQueues[2]);
+    ListPrepend(readyQueues[2], currProc);
+  } else {
+    currProc = (PCB*)ListTrim(readyQueues[3]);
+    ListPrepend(readyQueues[3], currProc);
+  }
+  printf("Process %u gets running for a time quantum\n", currProc->pid);
 }
 
 /* send a message to another process - block until reply */
