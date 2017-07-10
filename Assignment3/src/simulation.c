@@ -141,12 +141,22 @@ int semaphoreV(int semID) {
 /* dump complete state information of process to screen, which
  * include process status and anything else you can think of */
 void procinfo(PID pid) {
-
+  PCB *result;
+  for (int i = 0; i < 4; i++) {
+    result = (PCB*)ListSearch(readyQueues[i], pidIsEqual, &pid);
+    if (result != NULL) {
+      printf("PID %u\n", result->pid);
+      printf("Priority: %d\n", result->priority);
+    }
+  }
 }
 
 /* display all process queues and their contents */
 void totalInfo() {
-
+  for (int i = 0; i < 4; i++) {
+    printf("Contents of ready queue with priority %d:\n", i);
+    printQueue(readyQueues[i]);
+  }
 }
 
 /***********************************************************
@@ -174,4 +184,13 @@ PCB* copyPCB(PCB* origin) {
 
 int pidIsEqual(void* item, void* comparisonArg) {
   return ((PCB*)item)->pid == *((PID*)comparisonArg);
+}
+
+void printQueue(LIST* list) {
+  ListNode* iter = list->head;
+  while(iter != NULL) {
+    printf("%u ", ((PCB*)iter->val)->pid);
+    iter = iter->next;
+  }
+  printf("\n");
 }

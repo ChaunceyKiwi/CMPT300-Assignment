@@ -90,5 +90,6 @@ PID allocateID();
 PCB* createPCB(int priority);
 PCB* copyPCB(PCB* origin);
 int pidIsEqual(void* item, void* comparisonArg);
+void printQueue(LIST* list);
 
 #endif /* OS_ASS3_SIMULATION_H_ */
