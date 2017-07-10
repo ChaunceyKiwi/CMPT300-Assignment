@@ -43,7 +43,7 @@ int main(void)
 int create(int priority) {
   PCB* pcbPtr = createPCB(priority);
   ListPrepend(readyQueues[priority], (void*)pcbPtr);
-  printf("Success, the pid of the created process is %u\n", pcbPtr->pid);
+  printf("Process is successfully created, the pid is %u\n", pcbPtr->pid);
   return 0;
 }
 
@@ -53,18 +53,38 @@ int create(int priority) {
 int fork() {
   PCB* newProc = copyPCB(currProc);
   ListPrepend(readyQueues[newProc->priority], (void*)newProc);
-  printf("Succrss, the pid of the resulting new process is %u\n", newProc->pid);
+  printf("Process is successfully forked, the pid is %u\n", newProc->pid);
   return 0;
 }
 
 /* kill the named process and remove it from the system */
-int killProc(int pid) {
-  return 0;
+// TO-DO 'Init' process can only be killed (exit) if there are no other processes
+int killProc(PID pid) {
+  PCB *result;
+  for (int i = 0; i < 4; i++) {
+    result = (PCB*)ListSearch(readyQueues[i], pidIsEqual, &pid);
+    if (result != NULL) {
+      ListRemove(readyQueues[i]);
+      printf("Target process is successfully killed!\n");
+      return 0;
+    }
+  }
+  return 1;
 }
 
 /* kill currently running process */
-void exitProc() {
-  printf("Cool\n");
+int exitProc() {
+  PCB *result;
+  for (int i = 0; i < 4; i++) {
+    result = (PCB*)ListSearch(readyQueues[i], pidIsEqual, &currProc->pid);
+    if (result != NULL) {
+      ListRemove(readyQueues[i]);
+      printf("Current process is successfully exited!\n");
+      return 0;
+    }
+  }
+
+  return 1;
 }
 
 /* time quantum of running process expires */
@@ -72,7 +92,7 @@ void quantum() {
 }
 
 /* send a message to another process - block until reply */
-int send(int pid, char* msg) {
+int send(PID pid, char* msg) {
   return 0;
 }
 
@@ -81,7 +101,7 @@ void receive() {
 }
 
 /* unblocks sender and delivers reply */
-int reply(int pid, char * msg) {
+int reply(PID pid, char * msg) {
   return 0;
 }
 
@@ -106,7 +126,7 @@ int semaphoreV(int semID) {
 
 /* dump complete state information of process to screen, which
  * include process status and anything else you can think of */
-void procinfo(int pid) {
+void procinfo(PID pid) {
 
 }
 
@@ -136,4 +156,8 @@ PCB* copyPCB(PCB* origin) {
   pcbPtr->pid = allocateID();
   pcbPtr->priority = origin->priority;
   return pcbPtr;
+}
+
+int pidIsEqual(void* item, void* comparisonArg) {
+  return ((PCB*)item)->pid == *((PID*)comparisonArg);
 }

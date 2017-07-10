@@ -30,7 +30,7 @@
 typedef unsigned int PID;
 
 typedef struct PCB_ {
-  int pid;
+  PID pid;
   int priority;
   char proc_message[MSG_LEN];
 } PCB;
@@ -44,22 +44,22 @@ int create(int priority);
 int fork();
 
 /* kill the named process and remove it from the system */
-int killProc(int pid);
+int killProc(PID pid);
 
 /* kill currently running process */
-void exitProc();
+int exitProc();
 
 /* time quantum of running process expires */
 void quantum();
 
 /* send a message to another process - block until reply */
-int send(int pid, char* msg);
+int send(PID pid, char* msg);
 
 /* receive a message - block until one arrives */
 void receive();
 
 /* unblocks sender and delivers reply */
-int reply(int pid, char * msg);
+int reply(PID pid, char * msg);
 
 /* Initialize the named semaphore with the value given ID's
  * can take a value from 0 to 4. This can only be done once
@@ -76,7 +76,7 @@ int semaphoreV(int semID);
 
 /* dump complete state information of process to screen, which
  * include process status and anything else you can think of */
-void procinfo(int pid);
+void procinfo(PID pid);
 
 /* display all process queues and their contents */
 void totalInfo();
@@ -89,5 +89,6 @@ void totalInfo();
 PID allocateID();
 PCB* createPCB(int priority);
 PCB* copyPCB(PCB* origin);
+int pidIsEqual(void* item, void* comparisonArg);
 
 #endif /* OS_ASS3_SIMULATION_H_ */
