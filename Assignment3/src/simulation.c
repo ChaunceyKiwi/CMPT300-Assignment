@@ -106,6 +106,7 @@ int fork() {
 int killProc(PID pid) {
   PCB *result;
   for (int i = 0; i < 4; i++) {
+    ListFirst(readyQueues[i]);
     result = (PCB*)ListSearch(readyQueues[i], pidIsEqual, &pid);
     if (result != NULL) {
       ListRemove(readyQueues[i]);
@@ -120,6 +121,7 @@ int killProc(PID pid) {
 int exitProc() {
   PCB *result;
   for (int i = 0; i < 4; i++) {
+    ListFirst(readyQueues[i]);
     result = (PCB*)ListSearch(readyQueues[i], pidIsEqual, &currProc->pid);
     if (result != NULL) {
       ListRemove(readyQueues[i]);
@@ -187,6 +189,7 @@ int semaphoreV(int semID) {
 void procinfo(PID pid) {
   PCB *result;
   for (int i = 0; i < 4; i++) {
+    ListFirst(readyQueues[i]);
     result = (PCB*)ListSearch(readyQueues[i], pidIsEqual, &pid);
     if (result != NULL) {
       printf("PID %u\n", result->pid);
