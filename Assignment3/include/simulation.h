@@ -23,9 +23,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "list.h"
 
 #define MSG_LEN 256
+#define MAX_NUM_PROC 90
 
 typedef unsigned int PID;
 
@@ -88,7 +90,7 @@ void totalInfo();
 
 PID allocateID();
 PCB* createPCB(int priority);
-PCB* copyPCB(PCB* origin);
+PCB* copyPCB(PID originID);
 int pidIsEqual(void* item, void* comparisonArg);
 void printQueue(LIST* list);
 

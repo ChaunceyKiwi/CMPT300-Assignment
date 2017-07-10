@@ -22,9 +22,11 @@
 #include <stdio.h>
 #include "simulation.h"
 
-LIST *readyQueues[4];
+LIST* readyQueues[4];
+LIST* blockQueue;
 PID idAllocator = 0; /* imply the id of next new process */
-PCB *currProc = NULL;
+PID* currPID = NULL;
+PCB* PCBTable[MAX_NUM_PROC];
 
 int main(void)
 {
@@ -32,9 +34,11 @@ int main(void)
   readyQueues[1] = ListCreate(); /* queue with normal priority */
   readyQueues[2] = ListCreate(); /* queue with low priority */
   readyQueues[3] = ListCreate(); /* queue to put 'init' process */
+  blockQueue = ListCreate();     /* queue to put process being blocked */
 
   /* add 'init' process to queue */
   create(3);
+  quantum();
 
   int priority;
   int pid;
@@ -83,9 +87,10 @@ int main(void)
 /* create a process and put it on the appropriate ready Q */
 int create(int priority) {
   PCB* pcbPtr = createPCB(priority);
-  ListPrepend(readyQueues[priority], (void*)pcbPtr);
+  PCBTable[pcbPtr->pid] = pcbPtr;
+  ListPrepend(readyQueues[priority], (void*)(&pcbPtr->pid));
   if (pcbPtr->pid != 0) {
-    printf("Process is successfully created, the pid is %u\n", pcbPtr->pid);
+    printf("Process #%u is successfully created\n", pcbPtr->pid);
   }
   return 0;
 }
@@ -94,10 +99,11 @@ int create(int priority) {
  * corresponding to the original process' priority. Attempting
  * to Fork the "init" process should fail */
 int fork() {
-  PCB* newProc = copyPCB(currProc);
-  ListPrepend(readyQueues[newProc->priority], (void*)newProc);
-  printf("Process with pid %u is successfully forked, the pid of resulting process is %u\n",
-   currProc->pid, newProc->pid);
+  PCB* newProc = copyPCB(*currPID);
+  PCBTable[newProc->pid] = newProc;
+  ListPrepend(readyQueues[newProc->priority], (void*)(&newProc->pid));
+  printf("Process #%u is successfully forked, resulting process #%u\n",
+   *currPID, newProc->pid);
   return 0;
 }
 
@@ -122,7 +128,7 @@ int exitProc() {
   PCB *result;
   for (int i = 0; i < 4; i++) {
     ListFirst(readyQueues[i]);
-    result = (PCB*)ListSearch(readyQueues[i], pidIsEqual, &currProc->pid);
+    result = (PCB*)ListSearch(readyQueues[i], pidIsEqual, currPID);
     if (result != NULL) {
       ListRemove(readyQueues[i]);
       printf("Current process is successfully exited!\n");
@@ -135,33 +141,78 @@ int exitProc() {
 
 /* time quantum of running process expires */
 void quantum() {
-  if (ListCount(readyQueues[0]) != 0) {
-    currProc = (PCB*)ListTrim(readyQueues[0]);
-    ListPrepend(readyQueues[0], currProc);
-  } else if (ListCount(readyQueues[1]) != 0) {
-    currProc = (PCB*)ListTrim(readyQueues[1]);
-    ListPrepend(readyQueues[1], currProc);
-  } else if (ListCount(readyQueues[2]) != 0) {
-    currProc = (PCB*)ListTrim(readyQueues[2]);
-    ListPrepend(readyQueues[2], currProc);
-  } else {
-    currProc = (PCB*)ListTrim(readyQueues[3]);
-    ListPrepend(readyQueues[3], currProc);
+  if (currPID != NULL) {
+    printf("Time quantum of process #%u expires\n", *currPID);
   }
-  printf("Process %u gets running for a time quantum\n", currProc->pid);
+
+  if (ListCount(readyQueues[0]) != 0) {
+    currPID = (PID*)ListTrim(readyQueues[0]);
+    ListPrepend(readyQueues[0], (void*)currPID);
+  } else if (ListCount(readyQueues[1]) != 0) {
+    currPID = (PID*)ListTrim(readyQueues[1]);
+    ListPrepend(readyQueues[1], (void*)currPID);
+  } else if (ListCount(readyQueues[2]) != 0) {
+    currPID = (PID*)ListTrim(readyQueues[2]);
+    ListPrepend(readyQueues[2], (void*)currPID);
+  } else {
+    currPID = (PID*)ListTrim(readyQueues[3]);
+    ListPrepend(readyQueues[3], (void*)currPID);
+  }
+
+  printf("Time quantum of process #%u starts\n", *currPID);
 }
 
 /* send a message to another process - block until reply */
 int send(PID pid, char* msg) {
+  for (int i = 0; i < 4; i++) {
+    ListFirst(readyQueues[i]);
+    PID* result = (PID*)ListSearch(readyQueues[i], pidIsEqual, currPID);
+    if (result != NULL) {
+      printf("Message sent to the process #%u\n", pid);
+      ListPrepend(blockQueue, (void*)ListRemove(readyQueues[i])); /* block sender */
+      quantum();
+      return 0;
+    }
+  }
+
+  /* store the message in the PCB */
+  strcpy(PCBTable[pid]->proc_message, msg);
   return 0;
 }
 
 /* receive a message - block until one arrives */
 void receive() {
+  PCB* currProc = PCBTable[*currPID];
+  if (strlen(currProc->proc_message) != 0) {
+    printf("Receive message: %s\n", currProc->proc_message);
+    strcpy(currProc->proc_message, "");  /* empty string */
+  } else {
+    for (int i = 0; i < 4; i++) {
+      ListFirst(readyQueues[i]);
+      PID* result = (PID*)ListSearch(readyQueues[i], pidIsEqual, currPID);
+      if (result != NULL) {
+        printf("Process #%u blocked on receiving message\n", *currPID);
+        ListPrepend(blockQueue, (void*)ListRemove(readyQueues[i])); /* block receiver */
+        quantum();
+      }
+    }
+  }
 }
 
 /* unblocks sender and delivers reply */
-int reply(PID pid, char * msg) {
+int reply(PID pid, char* msg) {
+  ListFirst(blockQueue);
+  PID* result = (PID*)ListSearch(blockQueue, pidIsEqual, &pid);
+  PCB* targetPCB = PCBTable[pid];
+
+  if (result != NULL) {
+    strcpy(targetPCB->proc_message, msg);
+    ListPrepend(readyQueues[targetPCB->priority], (void*)ListRemove(blockQueue)); /* unblock sender */
+    printf("Message replied to the process #%u!\n", pid);
+    quantum();
+    return 0;
+  }
+
   return 0;
 }
 
@@ -187,14 +238,13 @@ int semaphoreV(int semID) {
 /* dump complete state information of process to screen, which
  * include process status and anything else you can think of */
 void procinfo(PID pid) {
-  PCB *result;
-  for (int i = 0; i < 4; i++) {
-    ListFirst(readyQueues[i]);
-    result = (PCB*)ListSearch(readyQueues[i], pidIsEqual, &pid);
-    if (result != NULL) {
-      printf("PID %u\n", result->pid);
-      printf("Priority: %d\n", result->priority);
-    }
+  PCB *result = PCBTable[pid];
+
+  if (result != NULL) {
+    printf("PID %u\n", result->pid);
+    printf("Priority: %d\n", result->priority);
+  } else {
+    printf("Process does not exist!\n");
   }
 }
 
@@ -222,21 +272,23 @@ PCB* createPCB(int priority) {
   return pcbPtr;
 }
 
-PCB* copyPCB(PCB* origin) {
+PCB* copyPCB(PID originID) {
+  PCB* originProc = PCBTable[originID];
   PCB* pcbPtr = (PCB*) malloc(sizeof(PCB));
   pcbPtr->pid = allocateID();
-  pcbPtr->priority = origin->priority;
+  pcbPtr->priority = originProc->priority;
+  strcpy(pcbPtr->proc_message, originProc->proc_message);
   return pcbPtr;
 }
 
 int pidIsEqual(void* item, void* comparisonArg) {
-  return ((PCB*)item)->pid == *((PID*)comparisonArg);
+  return *((PID*)item) == *((PID*)comparisonArg);
 }
 
 void printQueue(LIST* list) {
   ListNode* iter = list->head;
   while(iter != NULL) {
-    printf("%u ", ((PCB*)iter->val)->pid);
+    printf("%u ", *((PID*)iter->val));
     iter = iter->next;
   }
   printf("\n");
