@@ -72,7 +72,7 @@ int reply(PID pid, char * msg);
 /* Initialize the named semaphore with the value given ID's
  * can take a value from 0 to 4. This can only be done once
  * for a semaphore - subsequent attempts result in error */
-int newSemaphore(int semID, int initVal);
+int newSemaphore(int semID, int semVal);
 
 /* execute the semaphore P operation on behalf of the running
  * process. You can assume semaphores IDs numbered 0 through 4 */

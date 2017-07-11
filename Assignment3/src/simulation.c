@@ -46,6 +46,8 @@ int main(void)
     semaphores[i] = NULL;
   }
 
+  int semID;
+  int semVal;
   int priority;
   int pid;
   char* msg;
@@ -53,50 +55,63 @@ int main(void)
   while(1) {
     char op = getchar();
     switch (op) {
-      case 'C':
+      case 'C': case 'c':
         scanf("%d", &priority);
         create(priority);
         break;
-      case 'F':
+      case 'F': case 'f':
         fork();
         break;
-      case 'K':
+      case 'K': case 'k':
         scanf("%u", &pid);
         killProc(pid);
         break;
-      case 'E':
+      case 'E': case 'e':
         exitProc();
         break;
-      case 'Q':
+      case 'Q': case 'q':
         quantum();
         break;
-      case 'S':
+      case 'S': case 's':
         msg = (char*) malloc(MSG_LEN * sizeof(char));
         pid = scanf("%u", &pid);
         scanf("%s", msg);
         send(pid, msg);
         break;
-      case 'R':
+      case 'R': case 'r':
         receive();
         break;
-      case 'Y':
+      case 'Y': case 'y':
         msg = (char*) malloc(MSG_LEN * sizeof(char));
         pid = scanf("%u", &pid);
         scanf("%s", msg);
         reply(pid, msg);
         break;
-      case 'N': break;
-      case 'P': break;
-      case 'V': break;
-      case 'I':
+      case 'N': case 'n':
+        scanf("%d", &semID);
+        scanf("%d", &semVal);
+        newSemaphore(semID, semVal);
+        break;
+      case 'P': case 'p':
+        scanf("%d", &semID);
+        semaphoreP(semID);
+        break;
+      case 'V': case 'v':
+        scanf("%d", &semID);
+        semaphoreV(semID);
+        break;
+      case 'I': case 'i':
         scanf("%u", &pid);
         procinfo(pid);
         break;
-      case 'T':
+      case 'T': case 't':
         totalInfo();
         break;
       case '!':
         return 0;
+      default:
+        printf("Wrong command!\n");
+        break;
     }
   }
 
@@ -238,12 +253,12 @@ int reply(PID pid, char* msg) {
 /* Initialize the named semaphore with the value given ID's
  * can take a value from 0 to 4. This can only be done once
  * for a semaphore - subsequent attempts result in error */
-int newSemaphore(int semID, int initVal) {
+int newSemaphore(int semID, int semVal) {
   /* initialize semaphore only if it has not been initialied yet */
   if (semaphores[semID] == NULL) {
     SEM* semaphore = (SEM*) malloc(sizeof(SEM));
     semaphore->state = 1;
-    semaphore->val = initVal;
+    semaphore->val = semVal;
     semaphore->plist = ListCreate();
     semaphores[semID] = semaphore;
   }
