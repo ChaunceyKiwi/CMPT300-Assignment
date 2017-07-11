@@ -42,6 +42,7 @@ int main(void)
 
   int priority;
   int pid;
+  char* msg;
 
   while(1) {
     char op = getchar();
@@ -63,9 +64,21 @@ int main(void)
       case 'Q':
         quantum();
         break;
-      case 'S': break;
-      case 'R': break;
-      case 'Y': break;
+      case 'S':
+        msg = (char*) malloc(MSG_LEN * sizeof(char));
+        pid = scanf("%u", &pid);
+        scanf("%s", msg);
+        send(pid, msg);
+        break;
+      case 'R':
+        receive();
+        break;
+      case 'Y':
+        msg = (char*) malloc(MSG_LEN * sizeof(char));
+        pid = scanf("%u", &pid);
+        scanf("%s", msg);
+        reply(pid, msg);
+        break;
       case 'N': break;
       case 'P': break;
       case 'V': break;
@@ -230,7 +243,7 @@ int semaphoreP(int semID) {
 }
 
 /* execuate the semaphore V operation on behalf of the running
- * process. You can assume semaphore IDs numbered 0 thgough 4 */
+ * process. You can assume semaphore IDs numbered 0 through 4 */
 int semaphoreV(int semID) {
   return 0;
 }
