@@ -37,6 +37,12 @@ typedef struct PCB_ {
   char proc_message[MSG_LEN];
 } PCB;
 
+typedef struct semaphore_ {
+  int state; /* 0: not initialied, 1: initialied */
+  int val; /* the value of the semaphores */
+  LIST* plist; /* processes blocked on this semaphore */
+} SEM;
+
 /* create a process and put it on the appropriate ready Q */
 int create(int priority);
 

@@ -23,8 +23,8 @@
 
 #include <stdio.h>
 
-#define headsPoolSize 10     /* The total number of heads available */
-#define nodesPollSize 100   /* The total number of nodes available */
+#define headsPoolSize 20     /* The total number of heads available */
+#define nodesPollSize 1000   /* The total number of nodes available */
 
 typedef struct ListNode_ {
   void *val;

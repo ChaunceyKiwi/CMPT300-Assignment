@@ -27,6 +27,7 @@ LIST* blockQueue;
 PID idAllocator = 0; /* imply the id of next new process */
 PID* currPID = NULL;
 PCB* PCBTable[MAX_NUM_PROC];
+SEM* semaphores[4];
 
 int main(void)
 {
@@ -39,6 +40,11 @@ int main(void)
   /* add 'init' process to queue */
   create(3);
   quantum();
+
+  /* initialize all semaphore pointer */
+  for (int i = 0; i < 4; i++) {
+    semaphores[i] = NULL;
+  }
 
   int priority;
   int pid;
@@ -233,18 +239,47 @@ int reply(PID pid, char* msg) {
  * can take a value from 0 to 4. This can only be done once
  * for a semaphore - subsequent attempts result in error */
 int newSemaphore(int semID, int initVal) {
+  /* initialize semaphore only if it has not been initialied yet */
+  if (semaphores[semID] == NULL) {
+    SEM* semaphore = (SEM*) malloc(sizeof(SEM));
+    semaphore->state = 1;
+    semaphore->val = initVal;
+    semaphore->plist = ListCreate();
+    semaphores[semID] = semaphore;
+  }
   return 0;
 }
 
 /* execute the semaphore P operation on behalf of the running
  * process. You can assume semaphores IDs numbered 0 through 4 */
 int semaphoreP(int semID) {
+  (semaphores[semID]->val)--;
+
+  if (semaphores[semID]->val < 0) {
+    /* add current process to plist of semaphore */
+    for (int i = 0; i < 4; i++) {
+      ListFirst(readyQueues[i]);
+      PID* result = (PID*)ListSearch(readyQueues[i], pidIsEqual, currPID);
+      if (result != NULL) {
+        printf("Process #%u blocked on semaphore\n", *currPID);
+        ListPrepend(semaphores[semID]->plist, (void*)ListRemove(readyQueues[i])); /* block itself */
+        quantum();
+      }
+    }
+  }
   return 0;
 }
 
-/* execuate the semaphore V operation on behalf of the running
+/* execute the semaphore V operation on behalf of the running
  * process. You can assume semaphore IDs numbered 0 through 4 */
 int semaphoreV(int semID) {
+  (semaphores[semID]->val)++;
+
+  if (semaphores[semID]->val <= 0) {
+    PID* procID = ListTrim(semaphores[semID]->plist);
+    ListPrepend(readyQueues[PCBTable[*procID]->priority], (void*)procID);
+  }
+
   return 0;
 }
 
