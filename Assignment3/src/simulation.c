@@ -49,11 +49,14 @@ int main(void)
   int semID;
   int semVal;
   int priority;
-  int pid;
+  PID pid;
   char* msg;
 
   while(1) {
-    char op = getchar();
+    char op = (char)getchar();
+    if (op == '\n') {
+      continue;
+    }
     switch (op) {
       case 'C': case 'c':
         scanf("%d", &priority);
@@ -74,7 +77,7 @@ int main(void)
         break;
       case 'S': case 's':
         msg = (char*) malloc(MSG_LEN * sizeof(char));
-        pid = scanf("%u", &pid);
+        scanf("%u", &pid);
         scanf("%s", msg);
         send(pid, msg);
         break;
@@ -83,7 +86,7 @@ int main(void)
         break;
       case 'Y': case 'y':
         msg = (char*) malloc(MSG_LEN * sizeof(char));
-        pid = scanf("%u", &pid);
+        scanf("%u", &pid);
         scanf("%s", msg);
         reply(pid, msg);
         break;
@@ -114,8 +117,6 @@ int main(void)
         break;
     }
   }
-
-  return 0;
 }
 
 /* create a process and put it on the appropriate ready Q */
@@ -202,15 +203,15 @@ int send(PID pid, char* msg) {
     ListFirst(readyQueues[i]);
     PID* result = (PID*)ListSearch(readyQueues[i], pidIsEqual, currPID);
     if (result != NULL) {
+      strcpy(PCBTable[pid]->proc_message, msg);
       printf("Message sent to the process #%u\n", pid);
-      ListPrepend(blockQueue, (void*)ListRemove(readyQueues[i])); /* block sender */
+      ListPrepend(blockQueue, ListRemove(readyQueues[i])); /* block sender */
       quantum();
       return 0;
     }
   }
 
   /* store the message in the PCB */
-  strcpy(PCBTable[pid]->proc_message, msg);
   return 0;
 }
 
@@ -226,8 +227,9 @@ void receive() {
       PID* result = (PID*)ListSearch(readyQueues[i], pidIsEqual, currPID);
       if (result != NULL) {
         printf("Process #%u blocked on receiving message\n", *currPID);
-        ListPrepend(blockQueue, (void*)ListRemove(readyQueues[i])); /* block receiver */
+        ListPrepend(blockQueue, ListRemove(readyQueues[i])); /* block receiver */
         quantum();
+        break;
       }
     }
   }
@@ -241,7 +243,7 @@ int reply(PID pid, char* msg) {
 
   if (result != NULL) {
     strcpy(targetPCB->proc_message, msg);
-    ListPrepend(readyQueues[targetPCB->priority], (void*)ListRemove(blockQueue)); /* unblock sender */
+    ListPrepend(readyQueues[targetPCB->priority], ListRemove(blockQueue)); /* unblock sender */
     printf("Message replied to the process #%u!\n", pid);
     quantum();
     return 0;
@@ -261,6 +263,7 @@ int newSemaphore(int semID, int semVal) {
     semaphore->val = semVal;
     semaphore->plist = ListCreate();
     semaphores[semID] = semaphore;
+    printf("Semaphores #%d is initialized with value %d\n", semID, semaphore->val);
   }
   return 0;
 }
@@ -276,9 +279,10 @@ int semaphoreP(int semID) {
       ListFirst(readyQueues[i]);
       PID* result = (PID*)ListSearch(readyQueues[i], pidIsEqual, currPID);
       if (result != NULL) {
-        printf("Process #%u blocked on semaphore\n", *currPID);
-        ListPrepend(semaphores[semID]->plist, (void*)ListRemove(readyQueues[i])); /* block itself */
+        printf("Process #%u blocked on semaphore #%d\n", *currPID, semID);
+        ListPrepend(semaphores[semID]->plist, ListRemove(readyQueues[i])); /* block itself */
         quantum();
+        return 0;
       }
     }
   }
@@ -293,6 +297,7 @@ int semaphoreV(int semID) {
   if (semaphores[semID]->val <= 0) {
     PID* procID = ListTrim(semaphores[semID]->plist);
     ListPrepend(readyQueues[PCBTable[*procID]->priority], (void*)procID);
+    printf("Process #%u is unblocked by process #%u", *procID, *currPID);
   }
 
   return 0;
