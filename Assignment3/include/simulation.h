@@ -99,5 +99,7 @@ PCB* createPCB(int priority);
 PCB* copyPCB(PID originID);
 int pidIsEqual(void* item, void* comparisonArg);
 void printQueue(LIST* list);
+void displayWelcomeInfo();
+void displayMenu();
 
 #endif /* OS_ASS3_SIMULATION_H_ */

@@ -31,6 +31,8 @@ SEM* semaphores[4];
 
 int main(void)
 {
+  displayWelcomeInfo();
+
   readyQueues[0] = ListCreate(); /* queue with high priority */
   readyQueues[1] = ListCreate(); /* queue with normal priority */
   readyQueues[2] = ListCreate(); /* queue with low priority */
@@ -120,6 +122,9 @@ int main(void)
         break;
       case 'T': case 't':
         totalInfo();
+        break;
+      case 'M': case 'm':
+        displayMenu();
         break;
       case '!':
         return 0;
@@ -371,4 +376,37 @@ void printQueue(LIST* list) {
     iter = iter->next;
   }
   printf("\n");
+}
+
+void displayWelcomeInfo() {
+  printf("\n");
+  printf("----------------------------------------------------------------------\n");
+  printf("|          Welcome to Interactive Operating System Simulation        |\n");
+  printf("|            Type 'M' to know more about commands available          |\n");
+  printf("----------------------------------------------------------------------\n\n");
+}
+
+void displayMenu() {
+  printf("\n");
+  printf("-----------------------------------------------------------------------\n");
+  printf("|    ***********************************************                  |\n");
+  printf("|             Menu for operations available                           |\n");
+  printf("|             Command: Character -> Action                            |\n");
+  printf("|    ***********************************************                  |\n");
+  printf("|                                                                     |\n");
+  printf("|        Create: 'C' -> Create a process                              |\n");
+  printf("|          Fork: 'F' -> Fork a process                                |\n");
+  printf("|          Kill: 'K' -> Kill a named process                          |\n");
+  printf("|          Exit: 'E' -> Kill current process                          |\n");
+  printf("|       Quantum: 'Q' -> Time quantum of running process expires       |\n");
+  printf("|          Send: 'S' -> Send a message to another process             |\n");
+  printf("|       Receive: 'R' -> Receive a message                             |\n");
+  printf("|         Reply: 'Y' -> Unblock sender and delivers reply             |\n");
+  printf("| New Semaphore: 'N' -> Initialize the named semaphore                |\n");
+  printf("|   Semaphore P: 'P' -> Execute the semaphore P on current process    |\n");
+  printf("|   Semaphore V: 'V' -> Execute the semaphore V on current process    |\n");
+  printf("|      Procinfo: 'I' -> Dump information of process to screen         |\n");
+  printf("|     Totalinfo: 'T' -> Display all process queues                    |\n");
+  printf("|          Menu: 'M' -> Display the menu for all commands             |\n");
+  printf("-----------------------------------------------------------------------\n\n");
 }
