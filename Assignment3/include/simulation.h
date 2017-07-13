@@ -26,7 +26,7 @@
 #include <string.h>
 #include "list.h"
 
-#define MSG_LEN 256
+#define MSG_LEN 40
 #define MAX_NUM_PROC 200
 
 typedef unsigned int PID;

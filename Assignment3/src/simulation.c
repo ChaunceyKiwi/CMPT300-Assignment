@@ -59,6 +59,7 @@ int main(void)
     }
     switch (op) {
       case 'C': case 'c':
+        printf("priority: ");
         scanf("%d", &priority);
         create(priority);
         break;
@@ -66,6 +67,7 @@ int main(void)
         fork();
         break;
       case 'K': case 'k':
+        printf("pid: ");
         scanf("%u", &pid);
         killProc(pid);
         break;
@@ -77,7 +79,9 @@ int main(void)
         break;
       case 'S': case 's':
         msg = (char*) malloc(MSG_LEN * sizeof(char));
+        printf("pid: ");
         scanf("%u", &pid);
+        printf("message: ");
         scanf("%s", msg);
         send(pid, msg);
         break;
@@ -86,24 +90,31 @@ int main(void)
         break;
       case 'Y': case 'y':
         msg = (char*) malloc(MSG_LEN * sizeof(char));
+        printf("pid: ");
         scanf("%u", &pid);
+        printf("message: ");
         scanf("%s", msg);
         reply(pid, msg);
         break;
       case 'N': case 'n':
+        printf("semID: ");
         scanf("%d", &semID);
+        printf("semVal: ");
         scanf("%d", &semVal);
         newSemaphore(semID, semVal);
         break;
       case 'P': case 'p':
+        printf("semID: ");
         scanf("%d", &semID);
         semaphoreP(semID);
         break;
       case 'V': case 'v':
+        printf("semID: ");
         scanf("%d", &semID);
         semaphoreV(semID);
         break;
       case 'I': case 'i':
+        printf("pid: ");
         scanf("%u", &pid);
         procinfo(pid);
         break;
@@ -309,8 +320,9 @@ void procinfo(PID pid) {
   PCB *result = PCBTable[pid];
 
   if (result != NULL) {
+    printf("\nInformation of process #%u:\n", result->pid);
     printf("PID %u\n", result->pid);
-    printf("Priority: %d\n", result->priority);
+    printf("Priority: %d\n\n", result->priority);
   } else {
     printf("Process does not exist!\n");
   }
@@ -328,7 +340,6 @@ void totalInfo() {
 *   Helper functions implementation
 */
 
-// TO-DO: make sure it won't over flow
 PID allocateID() {
   return idAllocator++;
 }

@@ -14,7 +14,7 @@
 	* **/make/Makefile**
 
 ### How to run the program
-To run the prgram in /src/simulation.h.c, take following steps:
+To run the program in /src/simulation.h.c, take following steps:
 
 ```
 cd make; make;
