@@ -139,6 +139,7 @@ int create(int priority) {
   /* Try to create 'init' process */
   if (priority == 3) {
     PCB* pcbPtr = createPCB(priority);
+    PCBTable[pcbPtr->pid] = pcbPtr;
     processCount++;
     return pcbPtr->pid;
   }
