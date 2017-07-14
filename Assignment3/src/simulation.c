@@ -364,6 +364,7 @@ int reply(PID pid, char* msg) {
     targetPCB->print_proc_message = 1;
     printf("--------------------------------------------\n");
     printf("Message replied to the process #%u\n", pid);
+    printf("Process #%u is unblocked by process #%u\n", pid, *currPID);
     printf("--------------------------------------------\n\n");
     return 0;
   }
