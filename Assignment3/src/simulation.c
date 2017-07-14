@@ -280,11 +280,17 @@ int send(PID pid, char* msg) {
   /* send message and block sender */
   strcpy(PCBTable[pid]->proc_message, msg);
   printf("Message sent to the process #%u\n", pid);
-  ListPrepend(send_block_queue, (void*)currPID); /* block itself */
-  PCBTable[*currPID]->proc_state = BLOCKED;
-  printf("Time quantum of process #%u expires\n", *currPID);
-  currPID = NULL;
-  quantum();
+
+  /* block sender only if it is not 'init' process */
+  if (*currPID != 0) {
+    ListPrepend(send_block_queue, (void*)currPID);
+    PCBTable[*currPID]->proc_state = BLOCKED;
+    printf("Process #%u blocked on sending message\n", *currPID);
+    printf("Time quantum of process #%u expires\n", *currPID);
+    currPID = NULL;
+    quantum();
+  }
+
   return 0;
 }
 
@@ -294,7 +300,7 @@ void receive() {
   if (strlen(currProc->proc_message) != 0) {
     printf("Receive message: %s\n", currProc->proc_message);
     strcpy(currProc->proc_message, "");  /* empty string */
-  } else {
+  } else if (*currPID != 0) {
     ListPrepend(receive_block_queue, (void*)currPID); /* block itself */
     PCBTable[*currPID]->proc_state = BLOCKED;
     printf("Process #%u blocked on receiving message\n", *currPID);
@@ -361,15 +367,18 @@ int newSemaphore(int semID, int semVal) {
 /* execute the semaphore P operation on behalf of the running
  * process. You can assume semaphores IDs numbered 0 through 4 */
 int semaphoreP(int semID) {
-  (semaphores[semID]->val)--;
-  if (semaphores[semID]->val < 0) {
-    /* add current process to plist of semaphore */
-    ListPrepend(semaphores[semID]->plist, (void*)currPID); /* block itself */
-    PCBTable[*currPID]->proc_state = BLOCKED;
-    printf("Process #%u blocked on semaphore #%d\n", *currPID, semID);
-    printf("Time quantum of process #%u expires\n", *currPID);
-    currPID = NULL;
-    quantum();
+  /* since 'init' will never be blocked, treat it as nothing happen */
+  if (*currPID != 0) {
+    (semaphores[semID]->val)--;
+    if (semaphores[semID]->val < 0) {
+      /* add current process to plist of semaphore */
+      ListPrepend(semaphores[semID]->plist, (void*)currPID); /* block itself */
+      PCBTable[*currPID]->proc_state = BLOCKED;
+      printf("Process #%u blocked on semaphore #%d\n", *currPID, semID);
+      printf("Time quantum of process #%u expires\n", *currPID);
+      currPID = NULL;
+      quantum();
+    }
   }
   return 0;
 }

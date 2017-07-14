@@ -31,3 +31,8 @@ overwrite the former one.
 
 ## Policy on Semaphore
 - FIFO
+
+## About 'init' process
+- 'init' process will never block, thus:
+  - when perform receive() and there is no message being set yet
+  - do nothing when performs semaphoreP since it will not block itself 
