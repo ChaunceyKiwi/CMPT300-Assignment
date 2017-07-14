@@ -127,6 +127,7 @@ int main(void)
         displayMenu();
         break;
       case '!':
+        freeMemory();
         return 0;
       default:
         printf("Wrong command!\n");
@@ -187,6 +188,7 @@ int killProc(PID pid) {
       printf("All processes are gone from system, simulation terminates.\n");
       printf("--------------------------------------------------------\n\n");
       PCBTable[pid]->proc_state = EXITED;
+      freeMemory();
       exit(0);
     } else {
       printf("----------------------------------------------------------------------------\n");
@@ -228,6 +230,7 @@ int exitProc() {
       printf("Target process is successfully killed\n");
       printf("All processes are gone from system, simulation terminates.\n");
       printf("----------------------------------------------------------\n\n");
+      freeMemory();
       exit(0);
     } else {
       printf("---------------------------------------------------------------------------\n");
@@ -558,6 +561,28 @@ void printQueue(LIST* list) {
     iter = iter->prev;
   }
   printf("\n");
+}
+
+void freeItem(void* item) {
+  if (item != NULL) {
+    free(item);
+  }
+}
+
+void freeMemory() {
+  ListFree(ready_queues[0], freeItem);
+  ListFree(ready_queues[1], freeItem);
+  ListFree(ready_queues[2], freeItem);
+  ListFree(send_block_queue, freeItem);
+  ListFree(receive_block_queue, freeItem);
+
+  for (int i = 0; i < 5; i++) {
+    if (semaphores[i] != NULL) {
+      ListFree(semaphores[i]->plist, freeItem);
+    }
+  }
+
+  printf("All lists allocated are freed. Ready to exit.\n");
 }
 
 void displayWelcomeInfo() {

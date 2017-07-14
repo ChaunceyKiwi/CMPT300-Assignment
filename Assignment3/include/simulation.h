@@ -109,5 +109,7 @@ int pidIsEqual(void* item, void* comparisonArg);
 void printQueue(LIST* list);
 void displayWelcomeInfo();
 void displayMenu();
+void freeItem(void* item);
+void freeMemory();
 
 #endif /* OS_ASS3_SIMULATION_H_ */
