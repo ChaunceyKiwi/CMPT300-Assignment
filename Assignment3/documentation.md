@@ -14,8 +14,8 @@ int print_proc_message;
 
 ## PCB Table
 - PCB table is an array of PCB pointer
-- Used to achieve higher efficiency to get a PCB from PID
-- Trade-off between increasing space complexity and decreasing time complexity
+- Used to achieve higher time efficiency to get a PCB from PID
+- Trade-off between increasing space efficiency and decreasing time efficiency
 
 ## Semaphore structure
 - int val: the value of the semaphores
@@ -30,26 +30,26 @@ int print_proc_message;
 - once init process is killed/exited, the simulation terminates
 
 ## Description of scheduling algorithm
-- Round robin is applied to each priority ready queue, only when ready queue with high priority is empty will the job in the lower priority queue be consider to enter running state
+- Round robin is applied to each priority ready queue, only when the ready queue with a higher priority is empty will the job in the lower priority queue be consider to enter running state.
 - To prevent starvation, after each time quantum the running process will be put at the end of the ready queue which has a lower priority. For example, a process with high priority will be put at normal priority queue after its time quantum expires.
 
 ## Policy on IPC
 - Send
-  - After message is sent to named process, block sender until it get reply
-  - The source of reply can be from any process
+  - After message is sent to named process, block sender until it get reply.
+  - The source of reply can be from any process.
   - If the target process is already blocked on receiving, unblock it.
 
 - Receive
-  - If the message has already been sent, the receiving process displays the message immediately and continue executing
+  - If the message has already been sent, the receiving process displays the message immediately and continue executing.
   - If the message has not been sent yet, the receiving process will block itself. Once there is another process sends message to it, receiving process will be unblocked and be put at ready queue. The next time the process get running it will display the message.
   - Only one message can be sent to a process at a time, otherwise a second message would just
   overwrite the former one.
 
 - Reply
-  - All processes is able to reply, even if they has not been sent to.
-  - The process running 'reply' will never block itself
-  - If the target is a process blocked on sending message, unblock it
-  - If the target is a process blocked on receiving message, unblock it
+  - All processes are able to reply, even if they has not been sent to.
+  - The process running 'reply' will never block itself.
+  - If the target is a process blocked on sending message, unblock it.
+  - If the target is a process blocked on receiving message, unblock it.
 
 ## Policy on Semaphore
-- FIFO
+- We choose FIFO (first in, first out) to unblock the process. For example, when semaphoreV is performed and try to unblock a process that is blocked on that semaphore, it will choose the process which enters the process list of that semaphore firstly.
