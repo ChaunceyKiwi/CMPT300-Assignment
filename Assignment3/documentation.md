@@ -54,4 +54,4 @@ int print_proc_message;
   - If the target is a process blocked on receiving message, unblock it.
 
 ## Policy on Semaphore
-- We choose FIFO (first in, first out) to unblock the process. For example, when semaphoreV is performed and try to unblock a process that is blocked on that semaphore, it will choose the process which enters the process list of that semaphore firstly.
+- FIFO (first in, first out) is applied to unblock the process. For example, when semaphoreV is performed and try to unblock a process that is blocked on that semaphore, it will choose the process which enters the process list of that semaphore firstly.

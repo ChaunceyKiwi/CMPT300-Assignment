@@ -96,11 +96,15 @@ void totalInfo();
 *   Helper functions declarations
 */
 
+/* demote priority to perform round robin with priority */
+void demotePriority(PID pid);
+
+/* allocate PID by incrementing a unsigned integer */
 PID allocateID();
+
 void killBlockedProcess(PID pid);
 PCB* createPCB(int priority);
 PCB* copyPCB(PID originID);
-void demotePriority(PID pid);
 int pidIsEqual(void* item, void* comparisonArg);
 void printQueue(LIST* list);
 void displayWelcomeInfo();

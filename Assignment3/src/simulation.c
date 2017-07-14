@@ -22,36 +22,33 @@
 #include <stdio.h>
 #include "simulation.h"
 
-LIST* ready_queues[3];
-LIST* send_block_queue;
-LIST* receive_block_queue;
-PID idAllocator = 0; /* imply the id of next new process */
-PID* currPID = NULL;
-PCB* PCBTable[MAX_NUM_PROC];
-SEM* semaphores[5];
-int processCount = 0;
+LIST* ready_queues[3];          /* ready queue with three levels of priority */
+LIST* send_block_queue;         /* queue of processes wating on a send operation */
+LIST* receive_block_queue;      /* queue of processes wating on a receive opreation */
+PID idAllocator = 0;            /* imply the next available id for a new process */
+PID* currPID = NULL;            /* the PID of current running process*/
+PCB* PCBTable[MAX_NUM_PROC];    /* PCBTable to look up PCB from PID */
+SEM* semaphores[5];             /* Semaphore to perform synchronization */
+int processCount = 0;           /* the amount of process that is currentlt running */
 
 int main(void)
 {
   displayWelcomeInfo();
 
-  ready_queues[0] = ListCreate(); /* queue with high priority */
-  ready_queues[1] = ListCreate(); /* queue with normal priority */
-  ready_queues[2] = ListCreate(); /* queue with low priority */
+  /* Initialization */
+  ready_queues[0] = ListCreate();     /* queue with high priority */
+  ready_queues[1] = ListCreate();     /* queue with normal priority */
+  ready_queues[2] = ListCreate();     /* queue with low priority */
   send_block_queue = ListCreate();    /* queue to put process being blocked by sending message*/
   receive_block_queue = ListCreate(); /* queue to put process being blocked by receiving message*/
-
-  /* create and run the 'init' process */
-  currPID = &PCBTable[create(3)]->pid;
+  currPID = &PCBTable[create(3)]->pid;   /* create and run the 'init' process */
 
   /* initialize all semaphore pointers */
   for (int i = 0; i < 5; i++) {
     semaphores[i] = NULL;
   }
 
-  int semID;
-  int semVal;
-  int priority;
+  int semID, semVal, priority;
   PID pid;
   char* msg;
 
@@ -136,7 +133,7 @@ int main(void)
   }
 }
 
-/* create a process and put it on the appropriate ready Q */
+/* Create a process and put it on the appropriate ready queue */
 int create(int priority) {
   PCB* pcbPtr = createPCB(priority);
   PCBTable[pcbPtr->pid] = pcbPtr;
@@ -179,9 +176,7 @@ int fork() {
   return 0;
 }
 
-/* kill the named process and remove it from the system */
-// TO-DO 'Init' process can only be killed (exit) if there are no other processes
-// TO-DO handle with the situation where the process is on somewhere else
+/* Kill the named process and remove it from the system */
 int killProc(PID pid) {
   if (pid == 0) {
     if (processCount == 1) {
@@ -195,7 +190,6 @@ int killProc(PID pid) {
       printf("----------------------------------------------------------------------------\n");
       printf("Failure: 'init' process can only be killed if there are no other processes!\n");
       printf("----------------------------------------------------------------------------\n\n");
-
       return 1;
     }
   }
@@ -224,7 +218,7 @@ int killProc(PID pid) {
   return 1;
 }
 
-/* kill currently running process */
+/* Kill currently running process */
 int exitProc() {
   if (*currPID == 0) {
     if (processCount == 1) {
@@ -251,7 +245,7 @@ int exitProc() {
   return 0;
 }
 
-/* time quantum of running process expires */
+/* Time quantum of running process expires */
 void quantum() {
   if (currPID != NULL) {
     printf("--------------------------------------------\n");
@@ -286,7 +280,7 @@ void quantum() {
   printf("--------------------------------------------\n\n");
 }
 
-/* send a message to another process - block until reply */
+/* Send a message to another process - block until reply */
 int send(PID pid, char* msg) {
   /* unblock receiver if the receiver is blocked on receiving */
   ListFirst(receive_block_queue);
@@ -317,7 +311,7 @@ int send(PID pid, char* msg) {
   return 0;
 }
 
-/* receive a message - block until one arrives */
+/* Receive a message - block until one arrives */
 void receive() {
   PCB* currProc = PCBTable[*currPID];
   if (strlen(currProc->proc_message) != 0) {
@@ -336,7 +330,7 @@ void receive() {
   }
 }
 
-/* unblocks sender and delivers reply */
+/* Unblocks sender and delivers reply */
 int reply(PID pid, char* msg) {
   PID* result;
   PCB* targetPCB = PCBTable[pid];
@@ -394,7 +388,7 @@ int newSemaphore(int semID, int semVal) {
   return 0;
 }
 
-/* execute the semaphore P operation on behalf of the running
+/* Execute the semaphore P operation on behalf of the running
  * process. You can assume semaphores IDs numbered 0 through 4 */
 int semaphoreP(int semID) {
   /* since 'init' will never be blocked, treat it as nothing happen */
@@ -414,7 +408,7 @@ int semaphoreP(int semID) {
   return 0;
 }
 
-/* execute the semaphore V operation on behalf of the running
+/* Execute the semaphore V operation on behalf of the running
  * process. You can assume semaphore IDs numbered 0 through 4 */
 int semaphoreV(int semID) {
   (semaphores[semID]->val)++;
@@ -429,7 +423,7 @@ int semaphoreV(int semID) {
   return 0;
 }
 
-/* dump complete state information of process to screen, which
+/* Dump complete state information of process to screen, which
  * include process status and anything else you can think of */
 void procinfo(PID pid) {
   PCB *result = PCBTable[pid];
@@ -453,7 +447,7 @@ void procinfo(PID pid) {
   printf("--------------------------------------------\n\n");
 }
 
-/* display all process queues and their contents */
+/* Display all process queues and their contents */
 void totalInfo() {
   printf("--------------------------------------------------\n");
   for (int i = 0; i < 3; i++) {
@@ -479,12 +473,14 @@ void totalInfo() {
 *   Helper functions implementation
 */
 
+/* Demote priority to perform round robin with priority */
 void demotePriority(PID pid) {
   if (PCBTable[pid]->priority == 0 || PCBTable[pid]->priority == 1) {
     (PCBTable[pid]->priority)++;
   }
 }
 
+/* Allocate PID by incrementing a unsigned integer */
 PID allocateID() {
   return idAllocator++;
 }
