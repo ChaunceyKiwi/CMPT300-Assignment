@@ -20,3 +20,7 @@ To run the program in /src/simulation.h.c, take following steps:
 cd make; make;
 ./simulation
 ```
+
+### How to exit
+The program will be terminated when '!' is typed by user.
+
