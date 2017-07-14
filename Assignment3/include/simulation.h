@@ -33,11 +33,11 @@ typedef unsigned int PID;
 
 enum state {RUNNING, READY, BLOCKED, EXITED};
 typedef struct PCB_ {
-  PID pid;
-  int priority;
-  enum state proc_state;
-  char proc_message[MSG_LEN];
-  int print_proc_message;
+  PID pid;                    /* the id of process */
+  int priority;               /* priority of the process */
+  enum state proc_state;      /* the state of the process */
+  char proc_message[MSG_LEN]; /* messages sent or replied to this process */
+  int print_proc_message;     /* imply if the proc_message should be displayed */
 } PCB;
 
 typedef struct semaphore_ {

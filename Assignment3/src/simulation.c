@@ -581,7 +581,6 @@ void freeMemory() {
       ListFree(semaphores[i]->plist, freeItem);
     }
   }
-
   printf("All lists allocated are freed. Ready to exit.\n");
 }
 
