@@ -161,12 +161,13 @@ int create(int priority) {
  * to Fork the "init" process should fail */
 int fork() {
   if (*currPID == 0) {
-    printf("Failure: 'init' process should not be forked!\n");
+    printf("Failure: 'init' process cannot be forked!\n");
     return 1;
   }
   PCB* newProc = copyPCB(*currPID);
   PCBTable[newProc->pid] = newProc;
   ListPrepend(ready_queues[newProc->priority], (void*)(&newProc->pid));
+  processCount++;
   printf("Process #%u is successfully forked, resulting process #%u\n",
    *currPID, newProc->pid);
   return 0;
