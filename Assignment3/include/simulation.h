@@ -35,6 +35,7 @@ typedef struct PCB_ {
   PID pid;
   int priority;
   char proc_message[MSG_LEN];
+  int print_proc_message;
 } PCB;
 
 typedef struct semaphore_ {
