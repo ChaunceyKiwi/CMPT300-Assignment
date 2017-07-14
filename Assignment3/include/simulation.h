@@ -41,7 +41,7 @@ typedef struct PCB_ {
 } PCB;
 
 typedef struct semaphore_ {
-  int state;   /* 0: not initialied, 1: initialied */
+  int state;   /* 0: not initialized, 1: initialized */
   int val;     /* the value of the semaphores */
   LIST* plist; /* processes blocked on this semaphore */
 } SEM;

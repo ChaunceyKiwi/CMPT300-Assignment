@@ -249,6 +249,7 @@ void quantum() {
   currProc->proc_state = RUNNING;
   if (currProc->print_proc_message == 1 && strlen(currProc->proc_message) != 0) {
     printf("Receive message: %s\n", currProc->proc_message);
+    strcpy(currProc->proc_message, "");
     currProc->print_proc_message = 0;
   }
 }
