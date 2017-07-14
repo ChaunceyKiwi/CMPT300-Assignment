@@ -36,11 +36,11 @@ int main(void)
   displayWelcomeInfo();
 
   /* Initialization */
-  ready_queues[0] = ListCreate();     /* queue with high priority */
-  ready_queues[1] = ListCreate();     /* queue with normal priority */
-  ready_queues[2] = ListCreate();     /* queue with low priority */
-  send_block_queue = ListCreate();    /* queue to put process being blocked by sending message*/
-  receive_block_queue = ListCreate(); /* queue to put process being blocked by receiving message*/
+  ready_queues[0] = ListCreate();        /* queue with high priority */
+  ready_queues[1] = ListCreate();        /* queue with normal priority */
+  ready_queues[2] = ListCreate();        /* queue with low priority */
+  send_block_queue = ListCreate();       /* queue to put process being blocked by sending message*/
+  receive_block_queue = ListCreate();    /* queue to put process being blocked by receiving message*/
   currPID = &PCBTable[create(3)]->pid;   /* create and run the 'init' process */
 
   /* initialize all semaphore pointers */
@@ -126,6 +126,8 @@ int main(void)
       case 'M': case 'm':
         displayMenu();
         break;
+      case '!':
+        return 0;
       default:
         printf("Wrong command!\n");
         break;
