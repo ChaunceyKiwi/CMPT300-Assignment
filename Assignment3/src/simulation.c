@@ -346,10 +346,7 @@ int reply(PID pid, char* msg) {
   result = (PID*)ListSearch(send_block_queue, pidIsEqual, &pid);
   if (result != NULL) {
     strcpy(targetPCB->proc_message, msg);
-
-    /* unblock sender */
     ListPrepend(ready_queues[targetPCB->priority], ListRemove(send_block_queue));
-
     targetPCB->print_proc_message = 1;
     printf("--------------------------------------------\n");
     printf("Message replied to the process #%u\n", pid);
@@ -363,10 +360,7 @@ int reply(PID pid, char* msg) {
   result = (PID*)ListSearch(receive_block_queue, pidIsEqual, &pid);
   if (result != NULL) {
     strcpy(targetPCB->proc_message, msg);
-
-    /* unblock receiver */
     ListPrepend(ready_queues[targetPCB->priority], ListRemove(receive_block_queue));
-
     targetPCB->print_proc_message = 1;
     printf("--------------------------------------------\n");
     printf("Message replied to the process #%u\n", pid);
