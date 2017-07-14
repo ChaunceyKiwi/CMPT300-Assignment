@@ -85,8 +85,9 @@ int main(void)
         msg = (char*) malloc(MSG_LEN * sizeof(char));
         printf("pid: ");
         scanf("%u", &pid);
+        getchar();
         printf("message: ");
-        scanf("%s", msg);
+        fgets(msg, MSG_LEN, stdin);
         send(pid, msg);
         break;
       case 'R': case 'r':
@@ -96,8 +97,9 @@ int main(void)
         msg = (char*) malloc(MSG_LEN * sizeof(char));
         printf("pid: ");
         scanf("%u", &pid);
+        getchar();
         printf("message: ");
-        scanf("%s", msg);
+        fgets(msg, MSG_LEN, stdin);
         reply(pid, msg);
         break;
       case 'N': case 'n':
