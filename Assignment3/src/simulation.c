@@ -38,7 +38,6 @@ int main(void)
   ready_queues[0] = ListCreate(); /* queue with high priority */
   ready_queues[1] = ListCreate(); /* queue with normal priority */
   ready_queues[2] = ListCreate(); /* queue with low priority */
-
   send_block_queue = ListCreate();    /* queue to put process being blocked by sending message*/
   receive_block_queue = ListCreate(); /* queue to put process being blocked by receiing message*/
 
@@ -213,6 +212,7 @@ int exitProc() {
     }
   }
 
+  PCBTable[*currPID]->proc_state = EXITED;
   printf("Time quantum of process #%u expires\n", *currPID);
   currPID = NULL;
   processCount--;
@@ -229,6 +229,7 @@ void quantum() {
       PCB* currProc = PCBTable[*currPID];
       ListPrepend(ready_queues[currProc->priority], (void*)currPID);
     }
+    PCBTable[*currPID]->proc_state = READY;
     printf("Time quantum of process #%u expires\n", *currPID);
   }
 
@@ -244,6 +245,7 @@ void quantum() {
 
   printf("Time quantum of process #%u starts\n", *currPID);
   PCB* currProc = PCBTable[*currPID];
+  currProc->proc_state = RUNNING;
   if (currProc->print_proc_message == 1 && strlen(currProc->proc_message) != 0) {
     printf("Receive message: %s\n", currProc->proc_message);
     currProc->print_proc_message = 0;
@@ -265,6 +267,7 @@ int send(PID pid, char* msg) {
   strcpy(PCBTable[pid]->proc_message, msg);
   printf("Message sent to the process #%u\n", pid);
   ListPrepend(send_block_queue, (void*)currPID); /* block itself */
+  PCBTable[*currPID]->proc_state = BLOCKED;
   printf("Time quantum of process #%u expires\n", *currPID);
   currPID = NULL;
   quantum();
@@ -279,6 +282,7 @@ void receive() {
     strcpy(currProc->proc_message, "");  /* empty string */
   } else {
     ListPrepend(receive_block_queue, (void*)currPID); /* block itself */
+    PCBTable[*currPID]->proc_state = BLOCKED;
     printf("Process #%u blocked on receiving message\n", *currPID);
     printf("Time quantum of process #%u expires\n", *currPID);
     currPID = NULL;
@@ -373,8 +377,17 @@ void procinfo(PID pid) {
   PCB *result = PCBTable[pid];
   if (result != NULL) {
     printf("\nInformation of process #%u:\n", result->pid);
-    printf("PID %u\n", result->pid);
-    printf("Priority: %d\n\n", result->priority);
+    printf("PID: %u\n", result->pid);
+    printf("Priority: %d\n", result->priority);
+    if (result->proc_state == RUNNING) {
+      printf("State: runnning\n\n");
+    } else if (result->proc_state == READY) {
+      printf("State: ready\n\n");
+    } else if (result->proc_state == BLOCKED) {
+      printf("State: blocked\n\n");
+    } else {
+      printf("State: exited\n\n");
+    }
   } else {
     printf("Process does not exist!\n");
   }
@@ -404,6 +417,8 @@ PCB* createPCB(int priority) {
   PCB* pcbPtr = (PCB*) malloc(sizeof(PCB));
   pcbPtr->pid = allocateID();
   pcbPtr->priority = priority;
+  pcbPtr->proc_state = RUNNING;
+  strcpy(pcbPtr->proc_message, "");
   pcbPtr->print_proc_message = 0;
   return pcbPtr;
 }
@@ -413,7 +428,9 @@ PCB* copyPCB(PID originID) {
   PCB* pcbPtr = (PCB*) malloc(sizeof(PCB));
   pcbPtr->pid = allocateID();
   pcbPtr->priority = originProc->priority;
+  pcbPtr->proc_state = originProc->proc_state;
   strcpy(pcbPtr->proc_message, originProc->proc_message);
+  pcbPtr->print_proc_message = originProc->print_proc_message;
   return pcbPtr;
 }
 

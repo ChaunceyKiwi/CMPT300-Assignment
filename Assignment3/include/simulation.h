@@ -31,16 +31,18 @@
 
 typedef unsigned int PID;
 
+enum state {RUNNING, READY, BLOCKED, EXITED};
 typedef struct PCB_ {
   PID pid;
   int priority;
+  enum state proc_state;
   char proc_message[MSG_LEN];
   int print_proc_message;
 } PCB;
 
 typedef struct semaphore_ {
-  int state; /* 0: not initialied, 1: initialied */
-  int val; /* the value of the semaphores */
+  int state;   /* 0: not initialied, 1: initialied */
+  int val;     /* the value of the semaphores */
   LIST* plist; /* processes blocked on this semaphore */
 } SEM;
 
