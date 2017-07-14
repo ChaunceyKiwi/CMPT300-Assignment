@@ -28,3 +28,6 @@ int print_proc_message;
 ## Policy on IPC
 - Only one message can be sent to a process at a time, otherwise a second message would just
 overwrite the former one.
+
+## Policy on Semaphore
+- FIFO

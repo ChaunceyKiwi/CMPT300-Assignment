@@ -28,7 +28,7 @@ LIST* receive_block_queue;
 PID idAllocator = 0; /* imply the id of next new process */
 PID* currPID = NULL;
 PCB* PCBTable[MAX_NUM_PROC];
-SEM* semaphores[4];
+SEM* semaphores[5];
 int processCount = 0;
 
 int main(void)
@@ -45,7 +45,7 @@ int main(void)
   currPID = &PCBTable[create(3)]->pid;
 
   /* initialize all semaphore pointers */
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 5; i++) {
     semaphores[i] = NULL;
   }
 
@@ -181,23 +181,33 @@ int killProc(PID pid) {
     if (processCount == 1) {
       printf("Target process is successfully killed\n");
       printf("All processes are gone from system, simulation terminates.\n");
+      PCBTable[pid]->proc_state = EXITED;
       exit(0);
     } else {
       printf("Failure: 'init' process can only be killed if there are no other processes!\n");
+      return 1;
     }
   }
 
-  PCB *result;
-  for (int i = 0; i < 3; i++) {
-    ListFirst(ready_queues[i]);
-    result = (PCB*)ListSearch(ready_queues[i], pidIsEqual, &pid);
-    if (result != NULL) {
-      ListRemove(ready_queues[i]);
-      processCount--;
-      printf("Target process is successfully killed\n");
-      return 0;
+  if (PCBTable[pid]->proc_state == READY) {
+    PCB *result;
+    for (int i = 0; i < 3; i++) {
+      ListFirst(ready_queues[i]);
+      result = (PCB*)ListSearch(ready_queues[i], pidIsEqual, &pid);
+      if (result != NULL) {
+        ListRemove(ready_queues[i]);
+        processCount--;
+        PCBTable[pid]->proc_state = EXITED;
+        printf("Process #%d is successfully killed\n", pid);
+        return 0;
+      }
     }
+  } else if (PCBTable[pid]->proc_state == BLOCKED) {
+    killBlockedProcess(pid);
+  } else if (PCBTable[pid]->proc_state == RUNNING) {
+    exitProc();
   }
+
   return 1;
 }
 
@@ -210,6 +220,7 @@ int exitProc() {
       exit(0);
     } else {
       printf("Failure: 'init' process can only be killed if there are no other processes!\n");
+      return 1;
     }
   }
 
@@ -409,7 +420,7 @@ void totalInfo() {
   printf("Contents of queue of process waiting on a receive:\n");
   printQueue(receive_block_queue);
 
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 5; i++) {
     if (semaphores[i] != NULL) {
       printf("Semaphore #%d with value %d\n", i, semaphores[i]->val);
       printf("The processes wating on this semaphore: \n");
@@ -455,6 +466,45 @@ PCB* copyPCB(PID originID) {
 
 int pidIsEqual(void* item, void* comparisonArg) {
   return *((PID*)item) == *((PID*)comparisonArg);
+}
+
+void killBlockedProcess(PID pid) {
+  PID* result;
+  PCBTable[pid]->proc_state = EXITED;
+
+  /* Check processes that are blocked on sending, kill it if found */
+  ListFirst(send_block_queue);
+  result = (PID*)ListSearch(send_block_queue, pidIsEqual, &pid);
+  if (result != NULL) {
+    ListRemove(send_block_queue);
+    processCount--;
+    printf("Process #%d is successfully killed\n", pid);
+    return;
+  }
+
+  /* Check processes that are blocked on receiving, kill it if found */
+  ListFirst(receive_block_queue);
+  result = (PID*)ListSearch(receive_block_queue, pidIsEqual, &pid);
+  if (result != NULL) {
+    ListRemove(receive_block_queue);
+    processCount--;
+    printf("Process #%d is successfully killed\n", pid);
+    return;
+  }
+
+  /* Check processes that are blocked on semaphore, kill it if found */
+  for (int i = 0; i < 5; i++) {
+    if (semaphores[i] != NULL) {
+      ListFirst(semaphores[i]->plist);
+      result = (PID*)ListSearch(semaphores[i]->plist, pidIsEqual, &pid);
+      if (result != NULL) {
+        ListRemove(semaphores[i]->plist);
+        processCount--;
+        printf("Process #%d is successfully killed\n", pid);
+        return;
+      }
+    }
+  }
 }
 
 void printQueue(LIST* list) {

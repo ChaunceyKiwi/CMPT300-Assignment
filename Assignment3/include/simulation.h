@@ -97,6 +97,7 @@ void totalInfo();
 */
 
 PID allocateID();
+void killBlockedProcess(PID pid);
 PCB* createPCB(int priority);
 PCB* copyPCB(PID originID);
 void demotePriority(PID pid);
