@@ -293,6 +293,7 @@ int send(PID pid, char* msg) {
   if (result != NULL) {
     PCB* targetPCB = PCBTable[pid];
     ListPrepend(ready_queues[targetPCB->priority], ListRemove(receive_block_queue)); /* unblock receiver */
+    printf("Process #%u is unblocked by process #%u\n", pid, *currPID);
     targetPCB->print_proc_message = 1;
   }
 
