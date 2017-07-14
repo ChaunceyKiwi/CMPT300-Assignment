@@ -335,12 +335,14 @@ int newSemaphore(int semID, int semVal) {
   /* initialize semaphore only if it has not been initialied yet */
   if (semaphores[semID] == NULL) {
     SEM* semaphore = (SEM*) malloc(sizeof(SEM));
-    semaphore->state = 1;
     semaphore->val = semVal;
     semaphore->plist = ListCreate();
     semaphores[semID] = semaphore;
     printf("Semaphores #%d is initialized with value %d\n", semID, semaphore->val);
+  } else {
+    printf("Failure: Semaphores #%d has already been initialized!\n ", semID);
   }
+
   return 0;
 }
 
@@ -350,16 +352,12 @@ int semaphoreP(int semID) {
   (semaphores[semID]->val)--;
   if (semaphores[semID]->val < 0) {
     /* add current process to plist of semaphore */
-    for (int i = 0; i < 3; i++) {
-      ListFirst(ready_queues[i]);
-      PID* result = (PID*)ListSearch(ready_queues[i], pidIsEqual, currPID);
-      if (result != NULL) {
-        printf("Process #%u blocked on semaphore #%d\n", *currPID, semID);
-        ListPrepend(semaphores[semID]->plist, ListRemove(ready_queues[i])); /* block itself */
-        quantum();
-        return 0;
-      }
-    }
+    ListPrepend(semaphores[semID]->plist, (void*)currPID); /* block itself */
+    PCBTable[*currPID]->proc_state = BLOCKED;
+    printf("Process #%u blocked on semaphore #%d\n", *currPID, semID);
+    printf("Time quantum of process #%u expires\n", *currPID);
+    currPID = NULL;
+    quantum();
   }
   return 0;
 }
@@ -371,7 +369,8 @@ int semaphoreV(int semID) {
   if (semaphores[semID]->val <= 0) {
     PID* procID = ListTrim(semaphores[semID]->plist);
     ListPrepend(ready_queues[PCBTable[*procID]->priority], (void*)procID);
-    printf("Process #%u is unblocked by process #%u", *procID, *currPID);
+    PCBTable[*procID]->proc_state = READY;
+    printf("Process #%u is unblocked by process #%u\n", *procID, *currPID);
   }
   return 0;
 }
@@ -408,6 +407,14 @@ void totalInfo() {
   printQueue(send_block_queue);
   printf("Contents of queue of process waiting on a receive:\n");
   printQueue(receive_block_queue);
+
+  for (int i = 0; i < 4; i++) {
+    if (semaphores[i] != NULL) {
+      printf("Semaphore #%d with value %d\n", i, semaphores[i]->val);
+      printf("The processes wating on this semaphore: \n");
+      printQueue(semaphores[i]->plist);
+    }
+  }
 }
 
 /***********************************************************

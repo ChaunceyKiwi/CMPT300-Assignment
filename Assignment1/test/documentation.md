@@ -18,7 +18,6 @@ int print_proc_message;
 - Trade-off between increasing space complexity and decreasing time complexity
 
 ## Semaphore structure
-- int state: used to indicate if the semaphore has been initialized
 - int val: the value of the semaphores
 - LIST* plist: a list of processes waiting on this semaphore
 
