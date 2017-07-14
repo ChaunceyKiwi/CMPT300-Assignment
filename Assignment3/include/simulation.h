@@ -1,6 +1,6 @@
 /*------------------------------------------------------
  *
- *  s-talk.h
+ *  simulation.h
  *
  *  This file contains the declarations of functions of simulation,
  *  and the definitions of global macros
