@@ -423,10 +423,10 @@ int pidIsEqual(void* item, void* comparisonArg) {
 }
 
 void printQueue(LIST* list) {
-  ListNode* iter = list->head;
+  ListNode* iter = list->tail;
   while(iter != NULL) {
     printf("%u ", *((PID*)iter->val));
-    iter = iter->next;
+    iter = iter->prev;
   }
   printf("\n");
 }
