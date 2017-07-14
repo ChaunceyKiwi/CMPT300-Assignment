@@ -287,6 +287,11 @@ void quantum() {
 
 /* Send a message to another process - block until reply */
 int send(PID pid, char* msg) {
+  /* send message and block sender */
+  strcpy(PCBTable[pid]->proc_message, msg);
+  printf("--------------------------------------------\n");
+  printf("Message sent to the process #%u\n", pid);
+
   /* unblock receiver if the receiver is blocked on receiving */
   ListFirst(receive_block_queue);
   PID* result = (PID*)ListSearch(receive_block_queue, pidIsEqual, &pid);
@@ -296,11 +301,6 @@ int send(PID pid, char* msg) {
     printf("Process #%u is unblocked by process #%u\n", pid, *currPID);
     targetPCB->print_proc_message = 1;
   }
-
-  /* send message and block sender */
-  strcpy(PCBTable[pid]->proc_message, msg);
-  printf("--------------------------------------------\n");
-  printf("Message sent to the process #%u\n", pid);
 
   /* block sender only if it is not 'init' process */
   if (*currPID != 0) {
