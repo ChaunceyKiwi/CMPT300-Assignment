@@ -279,7 +279,7 @@ void quantum() {
   PCB* currProc = PCBTable[*currPID];
   currProc->proc_state = RUNNING;
   if (currProc->print_proc_message == 1 && strlen(currProc->proc_message) != 0) {
-    printf("Receive message: %s\n", currProc->proc_message);
+    printf("Receive message: %s", currProc->proc_message);
     strcpy(currProc->proc_message, "");
     currProc->print_proc_message = 0;
   }
@@ -322,7 +322,7 @@ void receive() {
   PCB* currProc = PCBTable[*currPID];
   if (strlen(currProc->proc_message) != 0) {
     printf("--------------------------------------------\n");
-    printf("Receive message: %s\n", currProc->proc_message);
+    printf("Receive message: %s", currProc->proc_message);
     printf("--------------------------------------------\n\n");
     strcpy(currProc->proc_message, "");  /* empty string */
   } else if (*currPID != 0) {
@@ -353,6 +353,7 @@ int reply(PID pid, char* msg) {
     targetPCB->print_proc_message = 1;
     printf("--------------------------------------------\n");
     printf("Message replied to the process #%u\n", pid);
+    printf("Process #%u is unblocked by process #%u\n", pid, *currPID);
     printf("--------------------------------------------\n\n");
     return 0;
   }
