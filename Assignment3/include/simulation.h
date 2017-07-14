@@ -100,6 +100,7 @@ void totalInfo();
 PID allocateID();
 PCB* createPCB(int priority);
 PCB* copyPCB(PID originID);
+void demotePriority(PID pid);
 int pidIsEqual(void* item, void* comparisonArg);
 void printQueue(LIST* list);
 void displayWelcomeInfo();

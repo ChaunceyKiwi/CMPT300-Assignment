@@ -227,6 +227,7 @@ void quantum() {
     /* skip 'init' process since it is not on any queue */
     if (*currPID != 0) {
       PCB* currProc = PCBTable[*currPID];
+      demotePriority(*currPID);
       ListPrepend(ready_queues[currProc->priority], (void*)currPID);
     }
     PCBTable[*currPID]->proc_state = READY;
@@ -300,7 +301,10 @@ int reply(PID pid, char* msg) {
   result = (PID*)ListSearch(send_block_queue, pidIsEqual, &pid);
   if (result != NULL) {
     strcpy(targetPCB->proc_message, msg);
-    ListPrepend(ready_queues[targetPCB->priority], ListRemove(send_block_queue)); /* unblock sender */
+
+    /* unblock sender */
+    ListPrepend(ready_queues[targetPCB->priority], ListRemove(send_block_queue));
+
     targetPCB->print_proc_message = 1;
     printf("Message replied to the process #%u\n", pid);
     return 0;
@@ -311,7 +315,10 @@ int reply(PID pid, char* msg) {
   result = (PID*)ListSearch(receive_block_queue, pidIsEqual, &pid);
   if (result != NULL) {
     strcpy(targetPCB->proc_message, msg);
-    ListPrepend(ready_queues[targetPCB->priority], ListRemove(receive_block_queue)); /* unblock receiver */
+
+    /* unblock receiver */
+    ListPrepend(ready_queues[targetPCB->priority], ListRemove(receive_block_queue));
+
     targetPCB->print_proc_message = 1;
     printf("Message replied to the process #%u\n", pid);
     return 0;
@@ -340,7 +347,6 @@ int newSemaphore(int semID, int semVal) {
  * process. You can assume semaphores IDs numbered 0 through 4 */
 int semaphoreP(int semID) {
   (semaphores[semID]->val)--;
-
   if (semaphores[semID]->val < 0) {
     /* add current process to plist of semaphore */
     for (int i = 0; i < 3; i++) {
@@ -361,13 +367,11 @@ int semaphoreP(int semID) {
  * process. You can assume semaphore IDs numbered 0 through 4 */
 int semaphoreV(int semID) {
   (semaphores[semID]->val)++;
-
   if (semaphores[semID]->val <= 0) {
     PID* procID = ListTrim(semaphores[semID]->plist);
     ListPrepend(ready_queues[PCBTable[*procID]->priority], (void*)procID);
     printf("Process #%u is unblocked by process #%u", *procID, *currPID);
   }
-
   return 0;
 }
 
@@ -408,6 +412,12 @@ void totalInfo() {
 /***********************************************************
 *   Helper functions implementation
 */
+
+void demotePriority(PID pid) {
+  if (PCBTable[pid]->priority == 0 || PCBTable[pid]->priority == 1) {
+    (PCBTable[pid]->priority)++;
+  }
+}
 
 PID allocateID() {
   return idAllocator++;
