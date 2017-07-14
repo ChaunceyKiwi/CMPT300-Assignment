@@ -128,8 +128,6 @@ int main(void)
       case 'M': case 'm':
         displayMenu();
         break;
-      case '!':
-        return 0;
       default:
         printf("Wrong command!\n");
         break;
@@ -139,18 +137,17 @@ int main(void)
 
 /* create a process and put it on the appropriate ready Q */
 int create(int priority) {
-  /* Try to create 'init' process */
+  PCB* pcbPtr = createPCB(priority);
+  PCBTable[pcbPtr->pid] = pcbPtr;
+
+  /* create 'init' process */
   if (priority == 3) {
-    PCB* pcbPtr = createPCB(priority);
-    PCBTable[pcbPtr->pid] = pcbPtr;
     processCount++;
     return pcbPtr->pid;
   }
 
   /* create normal process */
   else {
-    PCB* pcbPtr = createPCB(priority);
-    PCBTable[pcbPtr->pid] = pcbPtr;
     ListPrepend(ready_queues[priority], (void*)(&pcbPtr->pid));
     processCount++;
     printf("Process #%u is successfully created\n", pcbPtr->pid);
@@ -176,10 +173,11 @@ int fork() {
 
 /* kill the named process and remove it from the system */
 // TO-DO 'Init' process can only be killed (exit) if there are no other processes
+// TO-DO handle with the situation where the process is on somewhere else
 int killProc(PID pid) {
   if (pid == 0) {
     if (processCount == 1) {
-      printf("Target process is successfully killed!\n");
+      printf("Target process is successfully killed\n");
       printf("All processes are gone from system, simulation terminates.\n");
       exit(0);
     } else {
@@ -194,7 +192,7 @@ int killProc(PID pid) {
     if (result != NULL) {
       ListRemove(ready_queues[i]);
       processCount--;
-      printf("Target process is successfully killed!\n");
+      printf("Target process is successfully killed\n");
       return 0;
     }
   }
@@ -205,7 +203,7 @@ int killProc(PID pid) {
 int exitProc() {
   if (*currPID == 0) {
     if (processCount == 1) {
-      printf("Target process is successfully killed!\n");
+      printf("Target process is successfully killed\n");
       printf("All processes are gone from system, simulation terminates.\n");
       exit(0);
     } else {
@@ -213,19 +211,12 @@ int exitProc() {
     }
   }
 
-  PCB *result;
-  for (int i = 0; i < 3; i++) {
-    ListFirst(ready_queues[i]);
-    result = (PCB*)ListSearch(ready_queues[i], pidIsEqual, currPID);
-    if (result != NULL) {
-      ListRemove(ready_queues[i]);
-      processCount--;
-      printf("Current process is successfully exited!\n");
-      return 0;
-    }
-  }
-
-  return 1;
+  printf("Time quantum of process #%u expires\n", *currPID);
+  currPID = NULL;
+  processCount--;
+  printf("Current process is successfully exited\n");
+  quantum();
+  return 0;
 }
 
 /* time quantum of running process expires */
@@ -250,7 +241,6 @@ void quantum() {
   }
 
   printf("Time quantum of process #%u starts\n", *currPID);
-
   PCB* currProc = PCBTable[*currPID];
   if (currProc->print_proc_message == 1 && strlen(currProc->proc_message) != 0) {
     printf("Receive message: %s\n", currProc->proc_message);
@@ -296,24 +286,32 @@ void receive() {
 
 /* unblocks sender and delivers reply */
 int reply(PID pid, char* msg) {
-  ListFirst(send_block_queue);
-  PID* result = (PID*)ListSearch(send_block_queue, pidIsEqual, &pid);
+  PID* result;
   PCB* targetPCB = PCBTable[pid];
 
-  /* reply to a process that is blocked on sending */
+  /* unblock sender if the sender is blocked on sending  */
+  ListFirst(send_block_queue);
+  result = (PID*)ListSearch(send_block_queue, pidIsEqual, &pid);
   if (result != NULL) {
     strcpy(targetPCB->proc_message, msg);
     ListPrepend(ready_queues[targetPCB->priority], ListRemove(send_block_queue)); /* unblock sender */
     targetPCB->print_proc_message = 1;
-    printf("Message replied to the process #%u!\n", pid);
+    printf("Message replied to the process #%u\n", pid);
     return 0;
   }
 
-  /* reply to a running process */
-  else {
+  /* unblock receiver if the receiver is blocked on receiving */
+  ListFirst(receive_block_queue);
+  result = (PID*)ListSearch(receive_block_queue, pidIsEqual, &pid);
+  if (result != NULL) {
     strcpy(targetPCB->proc_message, msg);
+    ListPrepend(ready_queues[targetPCB->priority], ListRemove(receive_block_queue)); /* unblock receiver */
+    targetPCB->print_proc_message = 1;
+    printf("Message replied to the process #%u\n", pid);
     return 0;
   }
+
+  return 0;
 }
 
 /* Initialize the named semaphore with the value given ID's
@@ -371,7 +369,6 @@ int semaphoreV(int semID) {
  * include process status and anything else you can think of */
 void procinfo(PID pid) {
   PCB *result = PCBTable[pid];
-
   if (result != NULL) {
     printf("\nInformation of process #%u:\n", result->pid);
     printf("PID %u\n", result->pid);
