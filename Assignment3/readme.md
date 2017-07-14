@@ -4,7 +4,7 @@
 ### Project Structure
 * **/include**
 	* **/include/list.h**
-  * **/include/simulation.h**
+	* **/include/simulation.h**
 
 * **/src**
 	* **/src/list.c**
