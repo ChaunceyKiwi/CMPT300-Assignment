@@ -17,7 +17,7 @@ int print_proc_message;
 ## PCB Table
 - PCB table is an array of PCB pointer
 - Used to achieve higher time efficiency to get a PCB from PID
-- Trade-off between increasing space efficiency and decreasing time efficiency
+- Trade-off between decreasing space efficiency and increasing time efficiency
 
 ## Semaphore structure
 - int val: the value of the semaphores
