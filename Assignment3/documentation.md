@@ -35,13 +35,21 @@ int print_proc_message;
 
 ## Policy on IPC
 - Send
-  
+  - After message is sent to named process, block sender until it get reply
+  - The source of reply can be from any process
+  - If the target process is already blocked on receiving, unblock it.
+
 - Receive
-  - If the message has already been sent, then the receiving process display the message immediately and continue executing
-  - If the message has not been sent yet, then the receiving process will block itself. Once there is another process sends message to it, receiving process will be unblocked and put at ready queue. The next time the process get running it will display the message.
+  - If the message has already been sent, the receiving process displays the message immediately and continue executing
+  - If the message has not been sent yet, the receiving process will block itself. Once there is another process sends message to it, receiving process will be unblocked and be put at ready queue. The next time the process get running it will display the message.
   - Only one message can be sent to a process at a time, otherwise a second message would just
   overwrite the former one.
+
 - Reply
+  - All processes is able to reply, even if they has not been sent to.
+  - The process running 'reply' will never block itself
+  - If the target is a process blocked on sending message, unblock it
+  - If the target is a process blocked on receiving message, unblock it
 
 ## Policy on Semaphore
 - FIFO
