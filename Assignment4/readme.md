@@ -3,11 +3,9 @@
 ## Getting Started
 ### Project Structure
 * **/include**
-	* **/include/list.h**
     * **/include/UnixLs.h**
 
 * **/src**
-	* **/src/list.c**
 	* **/src/UnixLs.c**
 
 * **/make**

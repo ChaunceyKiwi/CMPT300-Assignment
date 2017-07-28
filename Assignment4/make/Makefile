@@ -8,21 +8,18 @@ SRC_DIR = ../src
 CC = cc
 
 # The complier option
-CFLAGS = -Wall -g -I$(HEADER_DIR) -pthread
+CFLAGS = -Wall -g -I$(HEADER_DIR)
 
 # The name of final excutable file
-PROG = s-talk
+PROG = UnixLs
 
-OBJS = list.o s-talk.o
+OBJS = UnixLs.o
 
 run: $(OBJS)
 	$(CC) $(CFLAGS) -o $(PROG) $(OBJS)
 
-list.o: $(SRC_DIR)/list.c $(HEADER_DIR)/list.h
-	$(CC) $(CFLAGS) -c $(SRC_DIR)/list.c
-
-s-talk.o: $(SRC_DIR)/s-talk.c $(HEADER_DIR)/list.h $(HEADER_DIR)/s-talk.h
-	$(CC) $(CFLAGS) -c $(SRC_DIR)/s-talk.c
+UnixLs.o: $(SRC_DIR)/UnixLs.c $(HEADER_DIR)/UnixLs.h
+	$(CC) $(CFLAGS) -c $(SRC_DIR)/UnixLs.c
 
 clean: 
 	rm $(PROG) *.o 
