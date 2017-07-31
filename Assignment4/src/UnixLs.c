@@ -2,8 +2,14 @@
 
 int main(void)
 {
+  listFiles(".");
+  return 0;
+}
+
+
+void listFiles(char* dirName) {
   /* open directory */
-  DIR *dirp = opendir(".");
+  DIR *dirp = opendir(dirName);
   struct dirent *dir;
 
   if (dirp) {
@@ -11,7 +17,8 @@ int main(void)
     {
       struct stat fileStat;
       if (stat(dir->d_name, &fileStat) < 0) {
-        return 1;
+        printf("Error!\n");
+        return;
       }
 
       // /* Option i */
@@ -28,7 +35,6 @@ int main(void)
         getAndPrintGroup(fileStat.st_gid);
         printf("%lld ", fileStat.st_size);
         printTime(fileStat.st_mtime);
-        // printf("%s ", ctime(&fileStat.st_mtime));
         printf("%s\n", dir->d_name);
       }
     }
@@ -36,8 +42,6 @@ int main(void)
     /* once you have finished reading a directory it needs to be closed */
     closedir(dirp);
   }
-
-  return 0;
 }
 
 void printMode(mode_t mode) {
