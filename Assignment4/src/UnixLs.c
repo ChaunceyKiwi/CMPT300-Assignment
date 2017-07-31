@@ -27,6 +27,7 @@ int main(void)
         getAndPrintUserName(fileStat.st_uid);
         getAndPrintGroup(fileStat.st_gid);
         printf("%lld ", fileStat.st_size);
+        printTime(fileStat.st_mtime);
         // printf("%s ", ctime(&fileStat.st_mtime));
         printf("%s\n", dir->d_name);
       }
@@ -76,5 +77,27 @@ void getAndPrintGroup(gid_t grpNum) {
   }
 }
 
-void printTime(struct timespec time) {
+void printTime(time_t time) {
+  struct tm *timeinfo;
+  timeinfo = localtime (&time);
+
+  switch (timeinfo->tm_mon) {
+    case 0: printf("Mon "); break;
+    case 1: printf("Feb "); break;
+    case 2: printf("Mar "); break;
+    case 3: printf("Apr "); break;
+    case 4: printf("May "); break;
+    case 5: printf("Jun "); break;
+    case 6: printf("Jul "); break;
+    case 7: printf("Aug "); break;
+    case 8: printf("Sep "); break;
+    case 9: printf("Oct "); break;
+    case 10: printf("Nov "); break;
+    case 11: printf("Dec "); break;
+    default: printf("Error"); break;
+  }
+
+  printf("%d ", timeinfo->tm_mday);
+  printf("%d ", timeinfo->tm_year + 1900);
+  printf("%d:%d ", timeinfo->tm_hour, timeinfo->tm_min);
 }
