@@ -34,28 +34,28 @@ int main(int argc, char **argv)
     i++;
   }
 
+  /* If no path file is given */
   if (i == argc) {
-    listFiles(".", flag_i, flag_l, flag_R);
+    listFiles(".", flag_i, flag_l, flag_R, 0);
   }
 
   /* If only one path file is given */
   if (i == argc - 1) {
-    listFiles(argv[i], flag_i, flag_l, flag_R);
+    listFiles(argv[i], flag_i, flag_l, flag_R, 0);
     i++;
   }
 
   /* If more than one path files are given */
   while (i < argc) {
-    printf("\n%s\n", argv[i]);
-    listFiles(argv[i], flag_i, flag_l, flag_R);
+    listFiles(argv[i], flag_i, flag_l, flag_R, 1);
     i++;
   }
 
   return 0;
 }
 
-void listFiles(char* dirName, int flag_i, int flag_l, int flag_R) {
-  if (flag_R) {
+void listFiles(char* dirName, int flag_i, int flag_l, int flag_R, int printDirFlag) {
+  if (printDirFlag) {
     printf("\n%s\n", dirName);
   }
 
@@ -82,7 +82,7 @@ void listFiles(char* dirName, int flag_i, int flag_l, int flag_R) {
       }
 
       if (flag_i) {
-        printf("%llu ", fileStat.st_ino);
+        printf("%8llu ", fileStat.st_ino);
       }
 
       /* Option l, but date is not done yet */
@@ -135,7 +135,7 @@ void listFiles(char* dirName, int flag_i, int flag_l, int flag_R) {
         }
 
         if(S_ISDIR(fileStat.st_mode)) {
-          listFiles(path, flag_i, flag_l, flag_R);
+          listFiles(path, flag_i, flag_l, flag_R, 1);
         }
       }
     }
