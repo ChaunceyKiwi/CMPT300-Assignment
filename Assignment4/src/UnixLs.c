@@ -2,7 +2,7 @@
 
 int main(void)
 {
-  listFiles(".");
+  listFiles("../test/a");
   return 0;
 }
 
@@ -34,7 +34,7 @@ void listFilesRecursively(char* dirName) {
       struct stat fileStat;
       char path[PATH_MAX_LENGTH];
       snprintf(path, sizeof(path), "%s/%s", dirName, dir->d_name);
-      if (stat(path, &fileStat) < 0) {
+      if (lstat(path, &fileStat) < 0) {
         printf("Error!!!!\n");
         return;
       }
@@ -61,8 +61,10 @@ void listFiles(char* dirName) {
 
       struct stat fileStat;
       char path[PATH_MAX_LENGTH];
+      memset(path, 0, sizeof(path));
+
       snprintf(path, sizeof(path), "%s/%s", dirName, dir->d_name);
-      if (stat(path, &fileStat) < 0) {
+      if (lstat(path, &fileStat) < 0) {
         printf("Error!!!!\n");
         return;
       }
@@ -78,7 +80,21 @@ void listFiles(char* dirName) {
       getAndPrintGroup(fileStat.st_gid);
       printf("%6lld ", fileStat.st_size);
       printTime(fileStat.st_mtime);
-      printf("%s\n", dir->d_name);
+      printf("%s", dir->d_name);
+
+      if (S_ISLNK(fileStat.st_mode)) {
+        char real_path[PATH_MAX_LENGTH];
+        memset(real_path, 0, sizeof(real_path));
+
+        if (readlink(path, real_path, sizeof(real_path) - 1) < 0) {
+          perror("readlink");
+          return;
+        }
+
+        printf(" -> %s", real_path);
+      }
+
+      printf("\n");
     }
 
     /* once you have finished reading a directory it needs to be closed */
@@ -143,7 +159,7 @@ void printTime(time_t time) {
     default: printf("Error"); break;
   }
 
-  printf("%02d ", timeinfo->tm_mday);
+  printf("%2d ", timeinfo->tm_mday);
   printf("%d ", timeinfo->tm_year + 1900);
   printf("%02d:%02d ", timeinfo->tm_hour, timeinfo->tm_min);
 }
