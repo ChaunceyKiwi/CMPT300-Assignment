@@ -2,8 +2,48 @@
 
 int main(void)
 {
-  listFiles(".");
+  listFiles("../test");
   return 0;
+}
+
+void listFilesRecursively(char* dirName) {
+  printf("\n%s\n", dirName);
+
+  /* open directory */
+  DIR *dirp = opendir(dirName);
+  struct dirent *dir;
+
+  if (dirp) {
+    /* first pass: printing the names of all files */
+    while ((dir = readdir(dirp)) != NULL)
+    {
+      if (dir->d_name[0] != '.') {
+        printf("%s\n", dir->d_name);
+      }
+    }
+
+    /* second pass: print the content of directory file */
+    rewinddir(dirp);
+    while ((dir = readdir(dirp)) != NULL)
+    {
+      /* Skipped over all hidden files */
+      if (dir->d_name[0] == '.') {
+        continue;
+      }
+
+      struct stat fileStat;
+      char path[PATH_MAX_LENGTH];
+      snprintf(path, sizeof(path), "%s/%s", dirName, dir->d_name);
+      if (stat(path, &fileStat) < 0) {
+        printf("Error!!!!\n");
+        return;
+      }
+
+      if(S_ISDIR(fileStat.st_mode)) {
+        listFilesRecursively(path);
+      }
+    }
+  }
 }
 
 
@@ -15,28 +55,30 @@ void listFiles(char* dirName) {
   if (dirp) {
     while ((dir = readdir(dirp)) != NULL)
     {
+      if (dir->d_name[0] == '.') {
+        continue;
+      }
+
       struct stat fileStat;
-      if (stat(dir->d_name, &fileStat) < 0) {
-        printf("Error!\n");
+      char path[PATH_MAX_LENGTH];
+      snprintf(path, sizeof(path), "%s/%s", dirName, dir->d_name);
+      if (stat(path, &fileStat) < 0) {
+        printf("Error!!!!\n");
         return;
       }
 
-      // /* Option i */
-      // if (dir->d_name[0] != '.') {
-      //   printf("%llu ", fileStat.st_ino);
-      //   printf("%s\n", dir->d_name);
-      // }
+      /* Option i */
+      // printf("%llu ", fileStat.st_ino);
+      printf("%s\n", dir->d_name);
 
       /* Option l, but date is not done yet */
-      if (dir->d_name[0] != '.') {
-        printMode(fileStat.st_mode);
-        printf("%d ", fileStat.st_nlink);
-        getAndPrintUserName(fileStat.st_uid);
-        getAndPrintGroup(fileStat.st_gid);
-        printf("%lld ", fileStat.st_size);
-        printTime(fileStat.st_mtime);
-        printf("%s\n", dir->d_name);
-      }
+      // printMode(fileStat.st_mode);
+      // printf("%d ", fileStat.st_nlink);
+      // getAndPrintUserName(fileStat.st_uid);
+      // getAndPrintGroup(fileStat.st_gid);
+      // printf("%lld ", fileStat.st_size);
+      // printTime(fileStat.st_mtime);
+      // printf("%s\n", dir->d_name);
     }
 
     /* once you have finished reading a directory it needs to be closed */
