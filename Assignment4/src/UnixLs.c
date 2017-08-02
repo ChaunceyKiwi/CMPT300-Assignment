@@ -2,7 +2,7 @@
 
 int main(void)
 {
-  listFiles("../test");
+  listFiles(".");
   return 0;
 }
 
@@ -68,15 +68,15 @@ void listFiles(char* dirName) {
       }
 
       // /* Option i */
-      // // printf("%llu ", fileStat.st_ino);
+      // printfm("%llu ", fileStat.st_ino);
       // printf("%s\n", dir->d_name);
 
       /* Option l, but date is not done yet */
       printMode(fileStat.st_mode);
-      printf("%d ", fileStat.st_nlink);
+      printf("%2d ", fileStat.st_nlink);
       getAndPrintUserName(fileStat.st_uid);
       getAndPrintGroup(fileStat.st_gid);
-      printf("%lld ", fileStat.st_size);
+      printf("%6lld ", fileStat.st_size);
       printTime(fileStat.st_mtime);
       printf("%s\n", dir->d_name);
     }
@@ -105,7 +105,7 @@ void getAndPrintUserName(uid_t uid) {
   pw = getpwuid(uid);
 
   if (pw) {
-    printf("%s  ", pw->pw_name);
+    printf("%8s  ", pw->pw_name);
   } else {
     perror("Hmm not found???");
     printf("No name found for %u\n", uid);
@@ -117,7 +117,7 @@ void getAndPrintGroup(gid_t grpNum) {
   grp = getgrgid(grpNum);
 
   if (grp) {
-    printf("%s  ", grp->gr_name);
+    printf("%6s  ", grp->gr_name);
   } else {
     printf("No group name for %u found\n", grpNum);
   }
@@ -143,7 +143,7 @@ void printTime(time_t time) {
     default: printf("Error"); break;
   }
 
-  printf("%d ", timeinfo->tm_mday);
+  printf("%02d ", timeinfo->tm_mday);
   printf("%d ", timeinfo->tm_year + 1900);
   printf("%02d:%02d ", timeinfo->tm_hour, timeinfo->tm_min);
 }
