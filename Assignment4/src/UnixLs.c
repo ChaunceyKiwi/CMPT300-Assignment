@@ -67,18 +67,18 @@ void listFiles(char* dirName) {
         return;
       }
 
-      /* Option i */
-      // printf("%llu ", fileStat.st_ino);
-      printf("%s\n", dir->d_name);
+      // /* Option i */
+      // // printf("%llu ", fileStat.st_ino);
+      // printf("%s\n", dir->d_name);
 
       /* Option l, but date is not done yet */
-      // printMode(fileStat.st_mode);
-      // printf("%d ", fileStat.st_nlink);
-      // getAndPrintUserName(fileStat.st_uid);
-      // getAndPrintGroup(fileStat.st_gid);
-      // printf("%lld ", fileStat.st_size);
-      // printTime(fileStat.st_mtime);
-      // printf("%s\n", dir->d_name);
+      printMode(fileStat.st_mode);
+      printf("%d ", fileStat.st_nlink);
+      getAndPrintUserName(fileStat.st_uid);
+      getAndPrintGroup(fileStat.st_gid);
+      printf("%lld ", fileStat.st_size);
+      printTime(fileStat.st_mtime);
+      printf("%s\n", dir->d_name);
     }
 
     /* once you have finished reading a directory it needs to be closed */
@@ -145,5 +145,5 @@ void printTime(time_t time) {
 
   printf("%d ", timeinfo->tm_mday);
   printf("%d ", timeinfo->tm_year + 1900);
-  printf("%d:%d ", timeinfo->tm_hour, timeinfo->tm_min);
+  printf("%02d:%02d ", timeinfo->tm_hour, timeinfo->tm_min);
 }
