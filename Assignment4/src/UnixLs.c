@@ -1,13 +1,63 @@
 #include "UnixLs.h"
 
-int main(void)
+int main(int argc, char **argv)
 {
-  listFiles("../test/a");
+  int flag_i = 0;
+  int flag_l = 0;
+  int flag_R = 0;
+
+  int i = 1;
+
+  /* read options */
+  while (i < argc) {
+    if (argv[i][0] == '-') {
+
+      int flag_pos = 1;
+      while (argv[i][flag_pos] == 'i' ||
+             argv[i][flag_pos] == 'l' ||
+             argv[i][flag_pos] == 'R' ) {
+
+        if (argv[i][flag_pos] == 'i') {
+          flag_i = 1;
+        } else if (argv[i][flag_pos] == 'l') {
+          flag_l = 1;
+        } else {
+          flag_R = 1;
+        }
+
+        flag_pos++;
+    }
+
+    } else {
+      break;
+    }
+    i++;
+  }
+
+  if (i == argc) {
+    listFiles(".", flag_i, flag_l, flag_R);
+  }
+
+  /* If only one path file is given */
+  if (i == argc - 1) {
+    listFiles(argv[i], flag_i, flag_l, flag_R);
+    i++;
+  }
+
+  /* If more than one path files are given */
+  while (i < argc) {
+    printf("\n%s\n", argv[i]);
+    listFiles(argv[i], flag_i, flag_l, flag_R);
+    i++;
+  }
+
   return 0;
 }
 
-void listFilesRecursively(char* dirName) {
-  printf("\n%s\n", dirName);
+void listFiles(char* dirName, int flag_i, int flag_l, int flag_R) {
+  if (flag_R) {
+    printf("\n%s\n", dirName);
+  }
 
   /* open directory */
   DIR *dirp = opendir(dirName);
@@ -17,44 +67,6 @@ void listFilesRecursively(char* dirName) {
     /* first pass: printing the names of all files */
     while ((dir = readdir(dirp)) != NULL)
     {
-      if (dir->d_name[0] != '.') {
-        printf("%s\n", dir->d_name);
-      }
-    }
-
-    /* second pass: print the content of directory file */
-    rewinddir(dirp);
-    while ((dir = readdir(dirp)) != NULL)
-    {
-      /* Skipped over all hidden files */
-      if (dir->d_name[0] == '.') {
-        continue;
-      }
-
-      struct stat fileStat;
-      char path[PATH_MAX_LENGTH];
-      snprintf(path, sizeof(path), "%s/%s", dirName, dir->d_name);
-      if (lstat(path, &fileStat) < 0) {
-        printf("Error!!!!\n");
-        return;
-      }
-
-      if(S_ISDIR(fileStat.st_mode)) {
-        listFilesRecursively(path);
-      }
-    }
-  }
-}
-
-
-void listFiles(char* dirName) {
-  /* open directory */
-  DIR *dirp = opendir(dirName);
-  struct dirent *dir;
-
-  if (dirp) {
-    while ((dir = readdir(dirp)) != NULL)
-    {
       if (dir->d_name[0] == '.') {
         continue;
       }
@@ -62,39 +74,70 @@ void listFiles(char* dirName) {
       struct stat fileStat;
       char path[PATH_MAX_LENGTH];
       memset(path, 0, sizeof(path));
-
       snprintf(path, sizeof(path), "%s/%s", dirName, dir->d_name);
+
       if (lstat(path, &fileStat) < 0) {
         printf("Error!!!!\n");
         return;
       }
 
-      // /* Option i */
-      // printfm("%llu ", fileStat.st_ino);
-      // printf("%s\n", dir->d_name);
+      if (flag_i) {
+        printf("%llu ", fileStat.st_ino);
+      }
 
       /* Option l, but date is not done yet */
-      printMode(fileStat.st_mode);
-      printf("%2d ", fileStat.st_nlink);
-      getAndPrintUserName(fileStat.st_uid);
-      getAndPrintGroup(fileStat.st_gid);
-      printf("%6lld ", fileStat.st_size);
-      printTime(fileStat.st_mtime);
+      if (flag_l) {
+        printMode(fileStat.st_mode);
+        printf("%2d ", fileStat.st_nlink);
+        getAndPrintUserName(fileStat.st_uid);
+        getAndPrintGroup(fileStat.st_gid);
+        printf("%6lld ", fileStat.st_size);
+        printTime(fileStat.st_mtime);
+      }
+
       printf("%s", dir->d_name);
 
-      if (S_ISLNK(fileStat.st_mode)) {
-        char real_path[PATH_MAX_LENGTH];
-        memset(real_path, 0, sizeof(real_path));
+      if (flag_l) {
+        if (S_ISLNK(fileStat.st_mode)) {
+          char real_path[PATH_MAX_LENGTH];
+          memset(real_path, 0, sizeof(real_path));
 
-        if (readlink(path, real_path, sizeof(real_path) - 1) < 0) {
-          perror("readlink");
-          return;
+          if (readlink(path, real_path, sizeof(real_path) - 1) < 0) {
+            perror("readlink");
+            return;
+          }
+
+          printf(" -> %s", real_path);
         }
-
-        printf(" -> %s", real_path);
       }
 
       printf("\n");
+    }
+
+    if (flag_R == 1) {
+      /* second pass: print the content of directory file */
+      rewinddir(dirp);
+      while ((dir = readdir(dirp)) != NULL)
+      {
+        /* Skipped over all hidden files */
+        if (dir->d_name[0] == '.') {
+          continue;
+        }
+
+        struct stat fileStat;
+        char path[PATH_MAX_LENGTH];
+        memset(path, 0, sizeof(path));
+        snprintf(path, sizeof(path), "%s/%s", dirName, dir->d_name);
+
+        if (lstat(path, &fileStat) < 0) {
+          printf("Error!!!!\n");
+          return;
+        }
+
+        if(S_ISDIR(fileStat.st_mode)) {
+          listFiles(path, flag_i, flag_l, flag_R);
+        }
+      }
     }
 
     /* once you have finished reading a directory it needs to be closed */
