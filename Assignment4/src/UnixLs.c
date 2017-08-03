@@ -67,15 +67,19 @@ int main(int argc, char **argv)
  * @param printDirFlag indicate if the directory name should be print firstly
  */
 void listFiles(char* dirName, int flag_i, int flag_l, int flag_R, int printDirFlag) {
-  if (printDirFlag) {
-    printf("\n%s\n", dirName);
-  }
-
   /* open directory */
   DIR *dirp = opendir(dirName);
   struct dirent *dir;
 
-  if (dirp) {
+  if (dirp == NULL) {
+    fprintf(stderr, "UnixLs: %s: No such file or directory\n", dirName);
+    exit(EXIT_FAILURE);
+  } else {
+    /* print directory name if the printDirFlag is set */
+    if (printDirFlag) {
+      printf("\n%s\n", dirName);
+    }
+
     /* first pass: printing the names of all files */
     while ((dir = readdir(dirp)) != NULL)
     {
