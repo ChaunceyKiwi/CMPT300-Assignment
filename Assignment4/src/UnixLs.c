@@ -31,21 +31,7 @@ int main(int argc, char **argv)
   int i = 1;
   while (i < argc) {
     if (argv[i][0] == '-') {
-      int flag_pos = 1;
-      while (argv[i][flag_pos] == 'i' ||
-             argv[i][flag_pos] == 'l' ||
-             argv[i][flag_pos] == 'R' ) {
-
-        if (argv[i][flag_pos] == 'i') {
-          flag_i = 1;
-        } else if (argv[i][flag_pos] == 'l') {
-          flag_l = 1;
-        } else {
-          flag_R = 1;
-        }
-
-        flag_pos++;
-      }
+      setFlags(argv[i], &flag_i, &flag_l, &flag_R);
     } else {
       break;
     }
@@ -252,4 +238,32 @@ void printTime(time_t time) {
   printf("%2d ", timeinfo->tm_mday);
   printf("%d ", timeinfo->tm_year + 1900);
   printf("%02d:%02d ", timeinfo->tm_hour, timeinfo->tm_min);
+}
+
+/**
+ * Set flags with information in input
+ * @param input the input to set flags
+ * @param flag_i indicate if the flag -i is set
+ * @param flag_l indicate if the flag -l is set
+ * @param flag_R indicate if the flag -R is set
+ */
+void setFlags(char* input, int* flag_i, int* flag_l, int* flag_R) {
+  int flag_pos = 1;
+  while(1) {
+    if (input[flag_pos] == 'i') {
+      *flag_i = 1;
+    } else if (input[flag_pos] == 'l') {
+      *flag_l = 1;
+    } else if (input[flag_pos] == 'R') {
+      *flag_R = 1;
+    } else {
+      if (input[flag_pos] != '\0' || flag_pos == 1) {
+        fprintf(stderr, "UnixLs: illegal option %s\n", input);
+        fprintf(stderr, "usage: ls [-ilR] [file ...]\n");
+        exit(EXIT_FAILURE);
+      }
+      break;
+    }
+    flag_pos++;
+  }
 }

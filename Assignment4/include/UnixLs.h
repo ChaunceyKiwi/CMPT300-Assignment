@@ -19,6 +19,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <string.h>
@@ -43,3 +44,6 @@ void getAndPrintGroup(gid_t grpNum);
 
 /* Print the date and the time when the file was last modified */
 void printTime(time_t time);
+
+/* Set flags with information in input */
+void setFlags(char* input, int* flag_i, int* flag_l, int* flag_R);
