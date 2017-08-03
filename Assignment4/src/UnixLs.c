@@ -1,17 +1,36 @@
+/*------------------------------------------------------
+ *
+ *  UnixLs.c
+ *
+ *  This file contains the functions to implement
+ *  the file listing functions in UNIX system, which
+ *  emulates ls command in UNIX system
+ *
+ *  Name         : Chauncey Liu
+ *  Student ID   : 301295771
+ *  SFU username : cla284
+ *  Course       : CMPT 300 Operating Systems I, Summer 2017
+ *  Instructor   : Harinder Khangura
+ *  TA           : Amineh Dadsetan
+ *
+ *  Created by Chauncey on 2017-08-01.
+ *  Copyright (c) 2017 Chauncey. All rights reserved.
+ *
+ *------------------------------------------------------
+ */
+
 #include "UnixLs.h"
 
 int main(int argc, char **argv)
 {
-  int flag_i = 0;
-  int flag_l = 0;
-  int flag_R = 0;
-
-  int i = 1;
+  int flag_i = 0; /* 1 when -i flag is set, otherwise 0 */
+  int flag_l = 0; /* 1 when -l flag is set, otherwise 0 */
+  int flag_R = 0; /* 1 when -R flag is set, otherwise 0 */
 
   /* read options */
+  int i = 1;
   while (i < argc) {
     if (argv[i][0] == '-') {
-
       int flag_pos = 1;
       while (argv[i][flag_pos] == 'i' ||
              argv[i][flag_pos] == 'l' ||
@@ -26,15 +45,14 @@ int main(int argc, char **argv)
         }
 
         flag_pos++;
-    }
-
+      }
     } else {
       break;
     }
     i++;
   }
 
-  /* If no path file is given */
+  /* If no path file is given, perform listing on current directory */
   if (i == argc) {
     listFiles(".", flag_i, flag_l, flag_R, 0);
   }
@@ -54,6 +72,14 @@ int main(int argc, char **argv)
   return 0;
 }
 
+/**
+ * Print information of files in the specified directory
+ * @param dirName the name of directory specified
+ * @param flag_i indicate if the flag -i is set
+ * @param flag_l indicate if the flag -l is set
+ * @param flag_R indicate if the flag -R is set
+ * @param printDirFlag indicate if the directory name should be print firstly
+ */
 void listFiles(char* dirName, int flag_i, int flag_l, int flag_R, int printDirFlag) {
   if (printDirFlag) {
     printf("\n%s\n", dirName);
@@ -145,6 +171,11 @@ void listFiles(char* dirName, int flag_i, int flag_l, int flag_R, int printDirFl
   }
 }
 
+/**
+ * Print the read/write/execute permission of the file
+ * This function extracts information needed from mode_t structure
+ * @param mode the protection information of a file
+ */
 void printMode(mode_t mode) {
  printf((S_ISDIR(mode)) ? "d" : "-");
  printf((mode & S_IRUSR) ? "r" : "-");
@@ -159,6 +190,12 @@ void printMode(mode_t mode) {
  printf("  ");
 }
 
+/**
+ * Print the user name of the file owner
+ * The function searchs user database for a user ID
+ * @param uid the id of a user
+ */
+/* print the user name of the file owner */
 void getAndPrintUserName(uid_t uid) {
   struct passwd *pw = NULL;
   pw = getpwuid(uid);
@@ -171,6 +208,11 @@ void getAndPrintUserName(uid_t uid) {
   }
 }
 
+/**
+ * Print the group name the owner belongs to
+ * The function gets group database entry for a group ID
+ * @param grpNum the id of a group
+ */
 void getAndPrintGroup(gid_t grpNum) {
   struct group *grp;
   grp = getgrgid(grpNum);
@@ -182,6 +224,11 @@ void getAndPrintGroup(gid_t grpNum) {
   }
 }
 
+/**
+ * Print the date and the time when the file was last modified
+ * This function extracts information needed from time_t structure
+ * @param time time of last modification
+ */
 void printTime(time_t time) {
   struct tm *timeinfo;
   timeinfo = localtime (&time);
