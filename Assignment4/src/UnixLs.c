@@ -72,8 +72,11 @@ void listFiles(char* dirName, int flag_i, int flag_l, int flag_R, int printDirFl
   struct dirent *dir;
 
   if (dirp == NULL) {
-    fprintf(stderr, "UnixLs: %s: No such file or directory\n", dirName);
-    exit(EXIT_FAILURE);
+    int res = printFileInfo(dirName, ".", flag_i, flag_l, flag_R);
+    if (res == 1) {
+      fprintf(stderr, "UnixLs: %s: No such file or directory\n", dirName);
+      exit(EXIT_FAILURE);
+    }
   } else {
     /* print directory name if the printDirFlag is set */
     if (printDirFlag) {
@@ -87,51 +90,11 @@ void listFiles(char* dirName, int flag_i, int flag_l, int flag_R, int printDirFl
         continue;
       }
 
-      struct stat fileStat;
-      char path[PATH_MAX_LENGTH];
-      memset(path, 0, sizeof(path));
-      snprintf(path, sizeof(path), "%s/%s", dirName, dir->d_name);
-
-      if (lstat(path, &fileStat) < 0) {
-        printf("Error!!!!\n");
-        return;
-      }
-
-      if (flag_i) {
-        printf("%8llu ", fileStat.st_ino);
-      }
-
-      /* Option l, but date is not done yet */
-      if (flag_l) {
-        printMode(fileStat.st_mode);
-        printf("%2d ", fileStat.st_nlink);
-        getAndPrintUserName(fileStat.st_uid);
-        getAndPrintGroup(fileStat.st_gid);
-        printf("%6lld ", fileStat.st_size);
-        printTime(fileStat.st_mtime);
-      }
-
-      printf("%s", dir->d_name);
-
-      if (flag_l) {
-        if (S_ISLNK(fileStat.st_mode)) {
-          char real_path[PATH_MAX_LENGTH];
-          memset(real_path, 0, sizeof(real_path));
-
-          if (readlink(path, real_path, sizeof(real_path) - 1) < 0) {
-            perror("readlink");
-            return;
-          }
-
-          printf(" -> %s", real_path);
-        }
-      }
-
-      printf("\n");
+      printFileInfo(dir->d_name, dirName, flag_i, flag_l, flag_R);
     }
 
+    /* second pass: print the content of directory file */
     if (flag_R == 1) {
-      /* second pass: print the content of directory file */
       rewinddir(dirp);
       while ((dir = readdir(dirp)) != NULL)
       {
@@ -159,6 +122,50 @@ void listFiles(char* dirName, int flag_i, int flag_l, int flag_R, int printDirFl
     /* once you have finished reading a directory it needs to be closed */
     closedir(dirp);
   }
+}
+
+int printFileInfo(char* fileName, char* dirName, int flag_i, int flag_l, int flag_R) {
+  struct stat fileStat;
+  char path[PATH_MAX_LENGTH];
+  memset(path, 0, sizeof(path));
+  snprintf(path, sizeof(path), "%s/%s", dirName, fileName);
+
+  if (lstat(path, &fileStat) < 0) {
+    return 1;
+  }
+
+  if (flag_i) {
+    printf("%8llu ", fileStat.st_ino);
+  }
+
+  /* Option l */
+  if (flag_l) {
+    printMode(fileStat.st_mode);
+    printf("%2d ", fileStat.st_nlink);
+    getAndPrintUserName(fileStat.st_uid);
+    getAndPrintGroup(fileStat.st_gid);
+    printf("%6lld ", fileStat.st_size);
+    printTime(fileStat.st_mtime);
+  }
+
+  printf("%s", fileName);
+
+  if (flag_l) {
+    if (S_ISLNK(fileStat.st_mode)) {
+      char real_path[PATH_MAX_LENGTH];
+      memset(real_path, 0, sizeof(real_path));
+
+      if (readlink(path, real_path, sizeof(real_path) - 1) < 0) {
+        perror("readlink");
+        return 2;
+      }
+
+      printf(" -> %s", real_path);
+    }
+  }
+
+  printf("\n");
+  return 0;
 }
 
 /**
