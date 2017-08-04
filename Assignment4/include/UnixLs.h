@@ -50,3 +50,6 @@ void printTime(time_t time);
 
 /* Set flags with information in input */
 void setFlags(char* input, int* flags);
+
+/* Identify if a file is directory file or ordinary file */
+int isDirectory(char* filePath);

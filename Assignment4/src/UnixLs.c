@@ -67,62 +67,85 @@ int main(int argc, char **argv)
  * @param printDirFlag indicate if the directory name should be print firstly
  */
 void listFiles(char* dirName, int* flags, int printDirFlag) {
-  /* open directory */
-  DIR *dirp = opendir(dirName);
-  struct dirent *dir;
+  int type = isDirectory(dirName);
 
-  if (dirp == NULL) {
-    /* check if the path given actually leads to a file */
-    int res = printFileInfo(dirName, ".", flags);
-    if (res == 1) {
-      fprintf(stderr, "UnixLs: %s: No such file or directory\n", dirName);
-      exit(EXIT_FAILURE);
-    }
-  } else {
-    /* print directory name if the printDirFlag is set */
-    if (printDirFlag) {
-      printf("\n%s\n", dirName);
-    }
+  /* If file does not exist */
+  if (type == -1) {
+    fprintf(stderr, "UnixLs: %s: No such file or directory\n", dirName);
+    exit(EXIT_FAILURE);
+  }
 
-    /* first pass: printing the names of all files */
-    while ((dir = readdir(dirp)) != NULL)
-    {
-      if (dir->d_name[0] == '.') {
-        continue;
+  /* If file is direcoty */
+  else if (type == 1) {
+    /* open directory */
+    DIR *dirp = opendir(dirName);
+    struct dirent *dir;
+
+    if (dirp != NULL) {
+      /* print directory name if the printDirFlag is set */
+      if (printDirFlag) {
+        printf("\n%s\n", dirName);
       }
 
-      printFileInfo(dir->d_name, dirName, flags);
-    }
-
-    /* second pass: print the content of directory file */
-    if (flags[2] == 1) {
-      rewinddir(dirp);
+      /* first pass: printing the names of all files */
       while ((dir = readdir(dirp)) != NULL)
       {
-        /* Skipped over all hidden files */
         if (dir->d_name[0] == '.') {
           continue;
         }
 
-        struct stat fileStat;
-        char path[PATH_MAX_LENGTH];
-        memset(path, 0, sizeof(path));
-        snprintf(path, sizeof(path), "%s/%s", dirName, dir->d_name);
+        printFileInfo(dir->d_name, dirName, flags);
+      }
 
-        if (lstat(path, &fileStat) < 0) {
-          fprintf(stderr, "lstat: failure to get statistic of file\n");
-          exit(EXIT_FAILURE);
-        }
+      /* second pass: print the content of directory file */
+      if (flags[2] == 1) {
+        rewinddir(dirp);
+        while ((dir = readdir(dirp)) != NULL)
+        {
+          /* Skipped over all hidden files */
+          if (dir->d_name[0] == '.') {
+            continue;
+          }
 
-        if(S_ISDIR(fileStat.st_mode)) {
-          listFiles(path, flags, 1);
+          struct stat fileStat;
+          char path[PATH_MAX_LENGTH];
+          memset(path, 0, sizeof(path));
+          snprintf(path, sizeof(path), "%s/%s", dirName, dir->d_name);
+
+          if (lstat(path, &fileStat) < 0) {
+            fprintf(stderr, "lstat: failure to get statistic of file\n");
+            exit(EXIT_FAILURE);
+          }
+
+          if(S_ISDIR(fileStat.st_mode)) {
+            listFiles(path, flags, 1);
+          }
         }
       }
-    }
 
-    /* once you have finished reading a directory it needs to be closed */
-    closedir(dirp);
+      /* once you have finished reading a directory it needs to be closed */
+      closedir(dirp);
+    }
   }
+
+  /* If file exists but not diretory */
+  else {
+    printFileInfo(dirName, ".", flags);
+  }
+}
+
+/**
+ * Identify if a file is directory file or ordinary file
+ * @param filePath identify the file on the filePath
+ * @return -1 if file not exist, 0 if file exists but not dir, 1 if is dir
+ */
+int isDirectory(char* filePath) {
+  struct stat fileStat;
+  if (lstat(filePath, &fileStat) < 0) {
+    return -1;
+  }
+
+  return S_ISDIR(fileStat.st_mode);
 }
 
 /**
