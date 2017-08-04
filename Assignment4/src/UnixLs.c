@@ -212,7 +212,13 @@ int printFileInfo(char* fileName, char* dirName, int* flags) {
  * @param mode the protection information of a file
  */
 void printMode(mode_t mode) {
- printf((S_ISDIR(mode)) ? "d" : "-");
+  if (S_ISDIR(mode)) {
+    printf("d");
+  } else if (S_ISLNK(mode)) {
+    printf("l");
+  } else {
+    printf("-");
+  }
  printf((mode & S_IRUSR) ? "r" : "-");
  printf((mode & S_IWUSR) ? "w" : "-");
  printf((mode & S_IXUSR) ? "x" : "-");
