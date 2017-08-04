@@ -31,9 +31,9 @@
 #define PATH_MAX_LENGTH 256 /* maximum length allowed for a path name */
 
 /* Print information of files in the specified directory */
-void listFiles(char* dirName, int flag_i, int flag_l, int flag_R, int printDirFlag);
+void listFiles(char* dirName, int* flags, int printDirFlag);
 
-int printFileInfo(char* fileName, char* dirName, int flag_i, int flag_l, int flag_R);
+int printFileInfo(char* fileName, char* dirName, int* flags);
 /* Print the read/write/execute permission of the file */
 void printMode(mode_t mode);
 
@@ -47,4 +47,4 @@ void getAndPrintGroup(gid_t grpNum);
 void printTime(time_t time);
 
 /* Set flags with information in input */
-void setFlags(char* input, int* flag_i, int* flag_l, int* flag_R);
+void setFlags(char* input, int* flags);

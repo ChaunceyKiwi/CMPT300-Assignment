@@ -23,15 +23,17 @@
 
 int main(int argc, char **argv)
 {
-  int flag_i = 0; /* 1 when -i flag is set, otherwise 0 */
-  int flag_l = 0; /* 1 when -l flag is set, otherwise 0 */
-  int flag_R = 0; /* 1 when -R flag is set, otherwise 0 */
+  /* flags[0/1/2] : state of -i/-l/-R flag */
+  int flags[3];
+  for (int i = 0; i < 3; i++) {
+    flags[i] = 0;
+  }
 
   /* read options */
   int i = 1;
   while (i < argc) {
     if (argv[i][0] == '-') {
-      setFlags(argv[i], &flag_i, &flag_l, &flag_R);
+      setFlags(argv[i], flags);
     } else {
       break;
     }
@@ -40,18 +42,18 @@ int main(int argc, char **argv)
 
   /* If no path file is given, perform listing on current directory */
   if (i == argc) {
-    listFiles(".", flag_i, flag_l, flag_R, 0);
+    listFiles(".", flags, 0);
   }
 
   /* If only one path file is given */
   if (i == argc - 1) {
-    listFiles(argv[i], flag_i, flag_l, flag_R, 0);
+    listFiles(argv[i], flags, 0);
     i++;
   }
 
   /* If more than one path files are given */
   while (i < argc) {
-    listFiles(argv[i], flag_i, flag_l, flag_R, 1);
+    listFiles(argv[i], flags, 1);
     i++;
   }
 
@@ -61,18 +63,16 @@ int main(int argc, char **argv)
 /**
  * Print information of files in the specified directory
  * @param dirName the name of directory specified
- * @param flag_i indicate if the flag -i is set
- * @param flag_l indicate if the flag -l is set
- * @param flag_R indicate if the flag -R is set
+ * @param flags[0/1/2] : state of -i/-l/-R flag
  * @param printDirFlag indicate if the directory name should be print firstly
  */
-void listFiles(char* dirName, int flag_i, int flag_l, int flag_R, int printDirFlag) {
+void listFiles(char* dirName, int* flags, int printDirFlag) {
   /* open directory */
   DIR *dirp = opendir(dirName);
   struct dirent *dir;
 
   if (dirp == NULL) {
-    int res = printFileInfo(dirName, ".", flag_i, flag_l, flag_R);
+    int res = printFileInfo(dirName, ".", flags);
     if (res == 1) {
       fprintf(stderr, "UnixLs: %s: No such file or directory\n", dirName);
       exit(EXIT_FAILURE);
@@ -90,11 +90,11 @@ void listFiles(char* dirName, int flag_i, int flag_l, int flag_R, int printDirFl
         continue;
       }
 
-      printFileInfo(dir->d_name, dirName, flag_i, flag_l, flag_R);
+      printFileInfo(dir->d_name, dirName, flags);
     }
 
     /* second pass: print the content of directory file */
-    if (flag_R == 1) {
+    if (flags[2] == 1) {
       rewinddir(dirp);
       while ((dir = readdir(dirp)) != NULL)
       {
@@ -114,7 +114,7 @@ void listFiles(char* dirName, int flag_i, int flag_l, int flag_R, int printDirFl
         }
 
         if(S_ISDIR(fileStat.st_mode)) {
-          listFiles(path, flag_i, flag_l, flag_R, 1);
+          listFiles(path, flags, 1);
         }
       }
     }
@@ -124,7 +124,7 @@ void listFiles(char* dirName, int flag_i, int flag_l, int flag_R, int printDirFl
   }
 }
 
-int printFileInfo(char* fileName, char* dirName, int flag_i, int flag_l, int flag_R) {
+int printFileInfo(char* fileName, char* dirName, int* flags) {
   struct stat fileStat;
   char path[PATH_MAX_LENGTH];
   memset(path, 0, sizeof(path));
@@ -134,12 +134,12 @@ int printFileInfo(char* fileName, char* dirName, int flag_i, int flag_l, int fla
     return 1;
   }
 
-  if (flag_i) {
+  if (flags[0]) {
     printf("%8llu ", fileStat.st_ino);
   }
 
   /* Option l */
-  if (flag_l) {
+  if (flags[1]) {
     printMode(fileStat.st_mode);
     printf("%2d ", fileStat.st_nlink);
     getAndPrintUserName(fileStat.st_uid);
@@ -150,7 +150,7 @@ int printFileInfo(char* fileName, char* dirName, int flag_i, int flag_l, int fla
 
   printf("%s", fileName);
 
-  if (flag_l) {
+  if (flags[1]) {
     if (S_ISLNK(fileStat.st_mode)) {
       char real_path[PATH_MAX_LENGTH];
       memset(real_path, 0, sizeof(real_path));
@@ -254,19 +254,17 @@ void printTime(time_t time) {
 /**
  * Set flags with information in input
  * @param input the input to set flags
- * @param flag_i indicate if the flag -i is set
- * @param flag_l indicate if the flag -l is set
- * @param flag_R indicate if the flag -R is set
+ * @param flags flags[0/1/2] : state of -i/-l/-R flag
  */
-void setFlags(char* input, int* flag_i, int* flag_l, int* flag_R) {
+void setFlags(char* input, int* flags) {
   int flag_pos = 1;
   while(1) {
     if (input[flag_pos] == 'i') {
-      *flag_i = 1;
+      flags[0] = 1;
     } else if (input[flag_pos] == 'l') {
-      *flag_l = 1;
+      flags[1] = 1;
     } else if (input[flag_pos] == 'R') {
-      *flag_R = 1;
+      flags[2] = 1;
     } else {
       if (input[flag_pos] != '\0' || flag_pos == 1) {
         fprintf(stderr, "UnixLs: illegal option %s\n", input);
