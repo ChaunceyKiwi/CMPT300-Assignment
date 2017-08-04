@@ -222,7 +222,7 @@ void printMode(mode_t mode) {
  printf((mode & S_IROTH) ? "r" : "-");
  printf((mode & S_IWOTH) ? "w" : "-");
  printf((mode & S_IXOTH) ? "x" : "-");
- printf("  ");
+ printf(" ");
 }
 
 /**
@@ -236,7 +236,7 @@ void getAndPrintUserName(uid_t uid) {
   pw = getpwuid(uid);
 
   if (pw) {
-    printf("%8s  ", pw->pw_name);
+    printf("%8s ", pw->pw_name);
   } else {
     printf("No name found for %u\n", uid);
   }
@@ -252,7 +252,7 @@ void getAndPrintGroup(gid_t grpNum) {
   grp = getgrgid(grpNum);
 
   if (grp) {
-    printf("%6s  ", grp->gr_name);
+    printf("%6s ", grp->gr_name);
   } else {
     printf("No group name for %u found\n", grpNum);
   }
