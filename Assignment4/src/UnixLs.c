@@ -72,6 +72,7 @@ void listFiles(char* dirName, int* flags, int printDirFlag) {
   struct dirent *dir;
 
   if (dirp == NULL) {
+    /* check if the path given actually leads to a file */
     int res = printFileInfo(dirName, ".", flags);
     if (res == 1) {
       fprintf(stderr, "UnixLs: %s: No such file or directory\n", dirName);
@@ -109,8 +110,8 @@ void listFiles(char* dirName, int* flags, int printDirFlag) {
         snprintf(path, sizeof(path), "%s/%s", dirName, dir->d_name);
 
         if (lstat(path, &fileStat) < 0) {
-          printf("Error!!!!\n");
-          return;
+          fprintf(stderr, "lstat: failure to get statistic of file\n");
+          exit(EXIT_FAILURE);
         }
 
         if(S_ISDIR(fileStat.st_mode)) {
@@ -124,6 +125,13 @@ void listFiles(char* dirName, int* flags, int printDirFlag) {
   }
 }
 
+/**
+ * Print information of file on specified path
+ * @param fileName name of the file
+ * @param dirName name of directory the file is in
+ * @param flags options to list a file's information
+ * @return 0 if succeed, 1 if file does not exist, 2 if error link
+ */
 int printFileInfo(char* fileName, char* dirName, int* flags) {
   struct stat fileStat;
   char path[PATH_MAX_LENGTH];
@@ -156,7 +164,7 @@ int printFileInfo(char* fileName, char* dirName, int* flags) {
       memset(real_path, 0, sizeof(real_path));
 
       if (readlink(path, real_path, sizeof(real_path) - 1) < 0) {
-        perror("readlink");
+        fprintf(stderr, "readlink: failure to get real path\n");
         return 2;
       }
 
@@ -200,7 +208,6 @@ void getAndPrintUserName(uid_t uid) {
   if (pw) {
     printf("%8s  ", pw->pw_name);
   } else {
-    perror("Hmm not found???");
     printf("No name found for %u\n", uid);
   }
 }

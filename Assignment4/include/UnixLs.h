@@ -33,7 +33,9 @@
 /* Print information of files in the specified directory */
 void listFiles(char* dirName, int* flags, int printDirFlag);
 
+/* Print information of file on specified path */
 int printFileInfo(char* fileName, char* dirName, int* flags);
+
 /* Print the read/write/execute permission of the file */
 void printMode(mode_t mode);
 
