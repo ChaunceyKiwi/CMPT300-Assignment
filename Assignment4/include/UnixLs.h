@@ -28,7 +28,7 @@
 #include <grp.h>
 #include <unistd.h>
 
-#define PATH_MAX_LENGTH 256 /* maximum length allowed for a path name */
+#define PATH_MAX_LENGTH 4096 /* maximum length allowed for a path name */
 
 /* Print information of files in the specified directory */
 void listFiles(char* dirName, int* flags, int printDirFlag);

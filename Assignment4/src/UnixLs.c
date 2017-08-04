@@ -113,6 +113,7 @@ void listFiles(char* dirName, int* flags, int printDirFlag) {
           snprintf(path, sizeof(path), "%s/%s", dirName, dir->d_name);
 
           if (lstat(path, &fileStat) < 0) {
+            printf("Path: %s", path);
             fprintf(stderr, "lstat: failure to get statistic of file\n");
             exit(EXIT_FAILURE);
           }
