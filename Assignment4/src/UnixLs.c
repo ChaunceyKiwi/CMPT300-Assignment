@@ -42,12 +42,12 @@ int main(int argc, char **argv)
 
   /* If no path file is given, perform listing on current directory */
   if (i == argc) {
-    listFiles(".", flags, 0);
+    listFiles(".", flags, flags[2]);
   }
 
   /* If only one path file is given */
   if (i == argc - 1) {
-    listFiles(argv[i], flags, 0);
+    listFiles(argv[i], flags, flags[2]);
     i++;
   }
 
@@ -289,7 +289,7 @@ void printTime(time_t time) {
  */
 void setFlags(char* input, int* flags) {
   int flag_pos = 1;
-  while(1) {
+  while (1) {
     if (input[flag_pos] == 'i') {
       flags[0] = 1;
     } else if (input[flag_pos] == 'l') {
