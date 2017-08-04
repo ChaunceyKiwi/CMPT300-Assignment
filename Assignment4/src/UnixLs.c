@@ -167,16 +167,16 @@ int printFileInfo(char* fileName, char* dirName, int* flags) {
   }
 
   if (flags[0]) {
-    printf("%8llu ", fileStat.st_ino);
+    printf("%8lu ", fileStat.st_ino);
   }
 
   /* Option l */
   if (flags[1]) {
     printMode(fileStat.st_mode);
-    printf("%2d ", fileStat.st_nlink);
+    printf("%2ud ", fileStat.st_nlink);
     getAndPrintUserName(fileStat.st_uid);
     getAndPrintGroup(fileStat.st_gid);
-    printf("%6lld ", fileStat.st_size);
+    printf("%6ld ", fileStat.st_size);
     printTime(fileStat.st_mtime);
   }
 
