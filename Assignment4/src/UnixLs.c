@@ -19,6 +19,8 @@
  *------------------------------------------------------
  */
 
+int initNewLine = 0;
+
 #include "UnixLs.h"
 
 int main(int argc, char **argv)
@@ -84,7 +86,11 @@ void listFiles(char* dirName, int* flags, int printDirFlag) {
     if (dirp != NULL) {
       /* print directory name if the printDirFlag is set */
       if (printDirFlag) {
-        printf("\n%s\n", dirName);
+        if (initNewLine) {
+          printf("\n");
+        }
+        initNewLine = 1;
+        printf("%s:\n", dirName);
       }
 
       /* first pass: printing the names of all files */
