@@ -19,9 +19,9 @@
  *------------------------------------------------------
  */
 
-int initNewLine = 0;
-
 #include "UnixLs.h"
+
+int initNewLine = 0;
 
 int main(int argc, char **argv)
 {
