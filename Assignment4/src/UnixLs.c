@@ -318,7 +318,7 @@ void setFlags(char* input, int* flags) {
     } else {
       if (input[flag_pos] != '\0' || flag_pos == 1) {
         fprintf(stderr, "UnixLs: illegal option %s\n", input);
-        fprintf(stderr, "usage: ls [-ilR] [file ...]\n");
+        fprintf(stderr, "usage: ./UnixLs [-ilR] [file ...]\n");
         exit(EXIT_FAILURE);
       }
       break;

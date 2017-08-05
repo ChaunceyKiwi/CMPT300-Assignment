@@ -16,5 +16,5 @@ To run the prgram in /src/UnixLs.c, take following steps:
 
 ```
 cd make; make;
-./UnixLs [my port number] [remote machine name] [remote port number];
+./UnixLs [-ilR] [file ...]
 ```
