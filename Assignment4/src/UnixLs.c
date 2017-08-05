@@ -100,7 +100,7 @@ void listFiles(char* dirName, int* flags, int printDirFlag) {
           continue;
         }
 
-        printFileInfo(dir->d_name, dirName, flags);
+        printFileInfo(dir->d_name, dirName, flags, 1);
       }
 
       /* second pass: print the content of directory file */
@@ -137,7 +137,7 @@ void listFiles(char* dirName, int* flags, int printDirFlag) {
 
   /* If file exists but not directory */
   else {
-    printFileInfo(dirName, ".", flags);
+    printFileInfo(dirName, "", flags, 0);
   }
 }
 
@@ -161,11 +161,16 @@ int isDirectory(char* filePath) {
  * @param dirName name of directory the file is in
  * @param flags options to list a file's information
  */
-void printFileInfo(char* fileName, char* dirName, int* flags) {
-  struct stat fileStat;
+void printFileInfo(char* fileName, char* dirName, int* flags, int concatFlag) {
   char path[PATH_MAX_LENGTH];
-  memset(path, 0, sizeof(path));
-  snprintf(path, sizeof(path), "%s/%s", dirName, fileName);
+  if (concatFlag) {
+    memset(path, 0, sizeof(path));
+    snprintf(path, sizeof(path), "%s/%s", dirName, fileName);
+  } else {
+    strcpy(path, fileName);
+  }
+
+  struct stat fileStat;
 
   if (lstat(path, &fileStat) < 0) {
     fprintf(stderr, "UnixLs: %s: No such file or directory\n", path);
