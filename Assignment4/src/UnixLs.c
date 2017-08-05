@@ -77,7 +77,7 @@ void listFiles(char* dirName, int* flags, int printDirFlag) {
     exit(EXIT_FAILURE);
   }
 
-  /* If file is direcoty */
+  /* If file is directory */
   else if (type == 1) {
     /* open directory */
     DIR *dirp = opendir(dirName);
@@ -135,7 +135,7 @@ void listFiles(char* dirName, int* flags, int printDirFlag) {
     }
   }
 
-  /* If file exists but not diretory */
+  /* If file exists but not directory */
   else {
     printFileInfo(dirName, ".", flags);
   }
@@ -160,16 +160,16 @@ int isDirectory(char* filePath) {
  * @param fileName name of the file
  * @param dirName name of directory the file is in
  * @param flags options to list a file's information
- * @return 0 if succeed, 1 if file does not exist, 2 if error link
  */
-int printFileInfo(char* fileName, char* dirName, int* flags) {
+void printFileInfo(char* fileName, char* dirName, int* flags) {
   struct stat fileStat;
   char path[PATH_MAX_LENGTH];
   memset(path, 0, sizeof(path));
   snprintf(path, sizeof(path), "%s/%s", dirName, fileName);
 
   if (lstat(path, &fileStat) < 0) {
-    return 1;
+    fprintf(stderr, "UnixLs: %s: No such file or directory\n", path);
+    exit(EXIT_FAILURE);
   }
 
   if (flags[0]) {
@@ -195,7 +195,7 @@ int printFileInfo(char* fileName, char* dirName, int* flags) {
 
       if (readlink(path, real_path, sizeof(real_path) - 1) < 0) {
         fprintf(stderr, "readlink: failure to get real path\n");
-        return 2;
+        exit(EXIT_FAILURE);
       }
 
       printf(" -> %s", real_path);
@@ -203,7 +203,6 @@ int printFileInfo(char* fileName, char* dirName, int* flags) {
   }
 
   printf("\n");
-  return 0;
 }
 
 /**
@@ -233,7 +232,7 @@ void printMode(mode_t mode) {
 
 /**
  * Print the user name of the file owner
- * The function searchs user database for a user ID
+ * The function searches user database for a user ID
  * @param uid the id of a user
  */
 /* print the user name of the file owner */
