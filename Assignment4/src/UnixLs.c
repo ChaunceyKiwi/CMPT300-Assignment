@@ -160,6 +160,7 @@ int isDirectory(char* filePath) {
  * @param fileName name of the file
  * @param dirName name of directory the file is in
  * @param flags options to list a file's information
+ * @param concatFlag options to concatenate fileName and dirName or not
  */
 void printFileInfo(char* fileName, char* dirName, int* flags, int concatFlag) {
   char path[PATH_MAX_LENGTH];
@@ -177,6 +178,7 @@ void printFileInfo(char* fileName, char* dirName, int* flags, int concatFlag) {
     exit(EXIT_FAILURE);
   }
 
+  /* Option i */
   if (flags[0]) {
     printf("%8lu ", fileStat.st_ino);
   }
@@ -193,6 +195,7 @@ void printFileInfo(char* fileName, char* dirName, int* flags, int concatFlag) {
 
   printf("%s", fileName);
 
+  /* Option l */
   if (flags[1]) {
     if (S_ISLNK(fileStat.st_mode)) {
       char real_path[PATH_MAX_LENGTH];
