@@ -3,7 +3,7 @@
 ## Getting Started
 ### Project Structure
 * **/include**
-    * **/include/UnixLs.h**
+	* **/include/UnixLs.h**
 
 * **/src**
 	* **/src/UnixLs.c**
