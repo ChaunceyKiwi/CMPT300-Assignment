@@ -281,7 +281,7 @@ void printTime(time_t time) {
   timeinfo = localtime (&time);
 
   switch (timeinfo->tm_mon) {
-    case 0: printf("Mon "); break;
+    case 0: printf("Jan "); break;
     case 1: printf("Feb "); break;
     case 2: printf("Mar "); break;
     case 3: printf("Apr "); break;
